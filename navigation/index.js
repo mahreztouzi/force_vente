@@ -1,92 +1,3 @@
-// // If you are not familiar with React Navigation, check out the "Fundamentals" guide:
-// // https://reactnavigation.org/docs/getting-started
-// import {
-//   DarkTheme,
-//   DefaultTheme,
-//   NavigationContainer,
-// } from "@react-navigation/native";
-// import { createStackNavigator } from "@react-navigation/stack";
-// import { createDrawerNavigator } from "@react-navigation/drawer";
-
-// import NotFoundScreen from "../screens/NotFoundScreen";
-// import LoginScreen from "../screens/LoginScreen";
-// import SplashScreenLogo from "../screens/SplashScreenLogo";
-// import UserProfile from "../screens/UserProfile";
-// import Tabs from "../screens/Tabs";
-// import ClientList from "../screens/ClientList";
-// import Dashboard from "../screens/Dashboard";
-
-// export default function Navigation({ colorScheme }) {
-//   return (
-//     <NavigationContainer theme={DefaultTheme}>
-//       <RootNavigator />
-//     </NavigationContainer>
-//   );
-// }
-
-// // A root stack navigator is often used for displaying modals on top of all other content
-// // Read more here: https://reactnavigation.org/docs/modal
-// const Stack = createStackNavigator();
-// const Drawer = createDrawerNavigator();
-
-// function RootNavigator() {
-//   return (
-//     <Stack.Navigator
-//       initialRouteName="splash"
-//       screenOptions={{ headerShown: false }}
-//     >
-//       <Stack.Screen name="splash" component={SplashScreenLogo} />
-//       <Stack.Screen
-//         name="Login"
-//         component={LoginScreen}
-//         options={{
-//           headerShown: false,
-//           gestureEnabled: false, // Désactiver le geste de retour
-//         }}
-//       />
-//       <Stack.Screen name="Tabs" component={Dashboards} />
-//       <Stack.Screen
-//         name="Clients"
-//         component={ClientList}
-//         options={{
-//           headerShown: true,
-//         }}
-//       />
-//       <Stack.Screen name="Profile" component={UserProfile} />
-//       {/* <Stack.Screen
-//         name="CreateTask"
-//         component={CreateTaskScreen}
-//         options={{
-//           headerShown: false,
-//           title: "Créer une Tâche",
-//         }}
-//       /> */}
-//       <Stack.Screen
-//         name="NotFound"
-//         component={NotFoundScreen}
-//         options={{ title: "Oops!" }}
-//       />
-
-//       {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
-//     </Stack.Navigator>
-//   );
-// }
-
-// function Dashboards({ navigation }) {
-//   return (
-//     <Drawer.Navigator
-//       initialRouteName="Projets"
-//       screenOptions={{
-//         headerShown: false,
-//       }}
-//     >
-//       {/* <Drawer.Screen name="Projets" component={Tabs} /> */}
-//       <Drawer.Screen name="Clients" component={Dashboard} />
-//     </Drawer.Navigator>
-//   );
-// }
-
-// Gardez vos imports existants et ajoutez ces imports supplémentaires
 import React, { useState } from "react";
 import {
   DarkTheme,
@@ -159,6 +70,12 @@ import ServerConfigScreen from "../screens/ServerConfigScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import ClientEtatList from "../screens/ClientEtatList";
 import BottomTabs from "./BottomTabs";
+import ClientPickerScreen from "../screens/newTheme/ClientPickerScreen";
+import ArticleSearchScreen from "../screens/newTheme/ArticleSearchScreen";
+import ClientDetailsScreen from "../screens/newTheme/ClientDetailsScreen";
+import AppDrawerWrapper from "./AppDrawerWrapper";
+import QuotationScreen from "../screens/newTheme/commande/QuotationScreen";
+import OrderReturnScreen from "../screens/newTheme/commande/OrderReturnScreen";
 
 // Ajoutez ce composant CustomDrawerContent dans le même fichier
 const CustomDrawerContent = (props) => {
@@ -167,16 +84,6 @@ const CustomDrawerContent = (props) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const logout = async () => {
-    // try {
-    //   await SecureStore.deleteItemAsync("username");
-    //   await SecureStore.deleteItemAsync("password");
-    //   navigation.reset({
-    //     index: 0,
-    //     routes: [{ name: "Login" }],
-    //   });
-    // } catch (error) {
-    //   console.log("Erreur lors de la déconnexion:", error);
-    // }
     const responeLogout = await dispatch(logoutUser());
     if (responeLogout) {
       navigation.reset({
@@ -288,528 +195,6 @@ export default function Navigation({ colorScheme }) {
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-// function RootNavigator() {
-//   const navigation = useNavigation();
-//   const [currentRoute, setCurrentRoute] = useState("splash");
-//   return (
-//     <View style={{ flex: 1 }}>
-//       <Stack.Navigator
-//         initialRouteName="splash"
-//         screenOptions={{ headerShown: false }}
-//       >
-//         <Stack.Screen
-//           name="splash"
-//           component={SplashScreenLogo}
-//           listeners={{
-//             focus: () => setCurrentRoute("splash"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="Login"
-//           component={LoginScreen}
-//           options={{
-//             headerShown: false,
-//             gestureEnabled: false, // Désactiver le geste de retour
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("Login"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="Tabs"
-//           component={Dashboard}
-//           listeners={{
-//             focus: () => setCurrentRoute("Tabs"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="Clients"
-//           component={ClientList}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Liste des Clients
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("Clients"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="ClientDetails"
-//           component={ClientDetails}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("ClientDetails"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="commande_liste"
-//           component={CommandeListesScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Commandes
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("commande_liste"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="quotation_liste"
-//           component={QuotationListesScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Listes des offres
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("quotation_liste"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="all_orders"
-//           component={CommandeVenteListeScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("all_orders"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="create_cmd"
-//           component={CommandeScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("create_cmd"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="create_offr"
-//           component={CreateQuotationScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("create_offr"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="offline_cmd"
-//           component={OfflineLivraisonsScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("offline_cmd"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="edit_offline_livraison"
-//           component={EditOfflineLivraisonScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("edit_offline_livraison"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="edit_offline_cmd"
-//           component={EditOfflineOrderScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("edit_offline_cmd"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="livraison"
-//           component={LivraisonScreen}
-//           options={({ navigation }) => ({
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4",
-//             },
-//             headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>
-//                 Choisissez une commande à livrer
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle"
-//                 size={30}
-//                 color="white"
-//                 style={{ marginLeft: 15 }}
-//                 onPress={() => navigation.goBack()}
-//               />
-//             ),
-//             // headerRight: () => <HeaderRightButton navigation={navigation} />,
-//           })}
-//           listeners={{
-//             focus: () => setCurrentRoute("livraison"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="allOutbounds"
-//           component={LivraisonsAllListScreen}
-//           options={({ navigation }) => ({
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4",
-//             },
-//             headerTintColor: "white",
-
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle"
-//                 size={30}
-//                 color="white"
-//                 style={{ marginLeft: 15 }}
-//                 onPress={() => navigation.goBack()}
-//               />
-//             ),
-//             // headerRight: () => <HeaderRightButton navigation={navigation} />,
-//           })}
-//           listeners={{
-//             focus: () => setCurrentRoute("allOutbounds"),
-//           }}
-//         />
-
-//         <Stack.Screen
-//           name="Facturation"
-//           component={BillingScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Facture
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("Facturation"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="create_livraison"
-//           component={CreateLivraisonScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("create_livraison"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="Stock"
-//           component={StockScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Stock
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("Stock"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="transfert_list"
-//           component={ReceptionListScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Listes des transferts
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("transfert_list"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="create_reception"
-//           component={CreateReceptionScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Création d'une réception
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("create_reception"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="encaissement"
-//           component={EncaissementScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>
-//                 Encaissement
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("encaissement"),
-//           }}
-//         />
-//         <Stack.Screen name="Profile" component={UserProfile} />
-//         <Stack.Screen
-//           name="DocumentViewer"
-//           component={DocumentViewerScreen}
-//           options={{ headerShown: true }}
-//           listeners={{
-//             focus: () => setCurrentRoute("DocumentViewer"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="NotFound"
-//           component={NotFoundScreen}
-//           options={{ title: "Oops!" }}
-//           listeners={{
-//             focus: () => setCurrentRoute("NotFound"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="PDFViewerScreen"
-//           component={PDFViewerScreen}
-//           options={{
-//             headerShown: true,
-//             presentation: "card",
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("PDFViewerScreen"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="brouillon"
-//           component={BrouillonScreen}
-//           options={{
-//             headerShown: true,
-//             headerStyle: {
-//               backgroundColor: "#03A9F4", // Changer la couleur de l'en-tête
-//             },
-//             headerTintColor: "white", // Changer la couleur du texte et des icônes
-//             // headerTintColor: "white",
-//             headerTitle: () => (
-//               <Text
-//                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-//               >
-//                 Brouillons
-//               </Text>
-//             ),
-//             headerLeft: () => (
-//               <MaterialCommunityIcons
-//                 name="arrow-left-circle" // Icône personnalisée
-//                 size={30} // Taille de l'icône
-//                 color="white" // Couleur de l'icône
-//                 style={{ marginLeft: 15 }} // Espacement à gauche
-//                 onPress={() => navigation.goBack()} // Retour à l'écran précédent
-//               />
-//             ),
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("brouillon"),
-//           }}
-//         />
-//         <Stack.Screen
-//           name="brouillon_cmd"
-//           component={DraftCommandeScreen}
-//           options={{
-//             headerShown: true,
-//           }}
-//           listeners={{
-//             focus: () => setCurrentRoute("brouillon_cmd"),
-//           }}
-//         />
-//         {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
-//       </Stack.Navigator>
-//       <ConnectionManager currentRoute={currentRoute} navigation={navigation} />
-//     </View>
-//   );
-// }
-
-// Remplacez votre fonction Dashboards actuelle par celle-ci
-
 function RootNavigator() {
   const navigation = useNavigation();
   const [currentRoute, setCurrentRoute] = useState("splash");
@@ -883,7 +268,12 @@ function RootNavigator() {
           name="Settings"
           component={SettingsScreen}
           options={{
-            ...headerScreenOptions,
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: "#03A9F4",
+            },
+            headerTintColor: "white",
+            ...TransitionPresets.ScaleFromCenterAndroid,
             headerTitle: () => (
               <Text
                 style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
@@ -917,8 +307,30 @@ function RootNavigator() {
           }}
         /> */}
         <Stack.Screen
+          name="ClientPicker"
+          component={ClientPickerScreen}
+          options={{
+            ...modalScreenOptions, // réutilise le pattern de présentation modale déjà défini dans ton fichier
+            headerShown: false,
+          }}
+          listeners={{
+            focus: () => setCurrentRoute("ClientPicker"),
+          }}
+        />
+        <Stack.Screen
+          name="ArticleSearch"
+          component={ArticleSearchScreen}
+          options={{
+            ...modalScreenOptions, // réutilise le pattern de présentation modale déjà défini dans ton fichier
+            headerShown: false,
+          }}
+          listeners={{
+            focus: () => setCurrentRoute("ArticleSearch"),
+          }}
+        />
+        <Stack.Screen
           name="Tabs"
-          component={BottomTabs}
+          component={AppDrawerWrapper}
           options={{
             ...fadeScreenOptions,
           }}
@@ -983,19 +395,20 @@ function RootNavigator() {
 
         <Stack.Screen
           name="ClientDetails"
-          component={ClientDetails}
-          options={{
-            ...headerScreenOptions,
-            headerLeft: () => (
-              <MaterialCommunityIcons
-                name="arrow-left-circle"
-                size={30}
-                color="white"
-                style={{ marginLeft: 15 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
-          }}
+          // component={ClientDetails}
+          component={ClientDetailsScreen}
+          // options={{
+          //   ...headerScreenOptions,
+          //   headerLeft: () => (
+          //     <MaterialCommunityIcons
+          //       name="arrow-left-circle"
+          //       size={30}
+          //       color="white"
+          //       style={{ marginLeft: 15 }}
+          //       onPress={() => navigation.goBack()}
+          //     />
+          //   ),
+          // }}
           listeners={{
             focus: () => setCurrentRoute("ClientDetails"),
           }}
@@ -1077,10 +490,11 @@ function RootNavigator() {
 
         <Stack.Screen
           name="create_cmd"
-          component={CommandeScreen}
-          options={{
-            ...modalScreenOptions,
-          }}
+          // component={CommandeScreen} // ancien theme
+          component={OrderReturnScreen}
+          // options={{
+          //   ...modalScreenOptions,
+          // }}
           listeners={{
             focus: () => setCurrentRoute("create_cmd"),
           }}
@@ -1088,10 +502,11 @@ function RootNavigator() {
 
         <Stack.Screen
           name="create_offr"
-          component={CreateQuotationScreen}
-          options={{
-            ...modalScreenOptions,
-          }}
+          // component={CreateQuotationScreen}  // ancien theme
+          component={QuotationScreen}
+          // options={{
+          //   ...modalScreenOptions,
+          // }}
           listeners={{
             focus: () => setCurrentRoute("create_offr"),
           }}

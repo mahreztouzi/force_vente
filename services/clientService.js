@@ -15,7 +15,7 @@ export const fetchClients = async (grpVendeur) => {
     return response.data.d.results;
   } catch (error) {
     throw new Error(
-      "Erreur lors de la récupération des clients: " + error.message
+      "Erreur lors de la récupération des clients: " + error.message,
     );
   }
 };
@@ -33,7 +33,7 @@ export const fetchClientEtat = async (codeUtilisateur) => {
     return response.data.d.results;
   } catch (error) {
     throw new Error(
-      "Erreur lors de la récupération de l'état des clients: " + error.message
+      "Erreur lors de la récupération de l'état des clients: " + error.message,
     );
   }
 };

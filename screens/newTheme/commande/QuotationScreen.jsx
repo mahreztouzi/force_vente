@@ -1,0 +1,709 @@
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+  FlatList,
+  Alert,
+  Animated,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  Ionicons,
+  MaterialIcons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { getArticles } from "../../../redux/slices/articleSlice";
+import {
+  addOrderReturn,
+  getCommandesApprouves,
+} from "../../../redux/slices/orderSlice";
+import {
+  addQuotation,
+  resetQuotationState,
+} from "../../../redux/slices/quotationSlice";
+import { printForms } from "../../../services/printFormsService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import { BackHandler } from "react-native";
+import ArticlesModalize from "../../../components/ArticlesModalize";
+import QuantityModalize from "../../../components/QuantityModalize";
+import PrintModalize from "../../../components/PrintModalize";
+import { scale, fs } from "../../../utils/responsive";
+import { Spacing, Radius } from "../../../constants/Theme";
+import ScreenBackground from "../../../components/common/ScreenBackground";
+import BottomFade from "../../../components/common/Bottomfade";
+import ArticleCard from "../../../components/common/commande/Articlecard";
+import PriceDisplay from "../../../components/common/Pricedisplay";
+
+const BLUE = "#03A9F4";
+const GREEN = "#4CAF50";
+const RED = "#e53935";
+const TEXT_DARK = "#212121";
+const TEXT_MUTED = "#757575";
+const BORDER = "#E5E7EB";
+
+/**
+ * Écran générique de création de commande/offre — logique métier identique
+ * à l'ancien CreateQuotationScreen, restylé au nouveau thème.
+ * Réutilisable pour "create_offr" (motif absent → addQuotation) et
+ * "create_cmd" en commande retour (motif présent → addOrderReturn).
+ */
+const QuotationScreen = ({ route }) => {
+  const navigation = useNavigation();
+  const { client, motif } = route.params;
+  const dispatch = useDispatch();
+  const userData = useSelector((state) => state.auth.user);
+  const { articles, loading, error } = useSelector((state) => state.articles);
+  const {
+    loading: orderLoading,
+    error: orderError,
+    success: orderSuccess,
+  } = useSelector((state) => state.Quotations);
+  const { isServerReachable } = useSelector((state) => state.offline);
+
+  const [commandeItems, setCommandeItems] = useState([]);
+  const [totalHT, setTotalHT] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [quantity, setQuantity] = useState("1");
+  const [discount, setDiscount] = useState("0");
+  const [validatedNumbers, setValidatedNumbers] = useState([]);
+  const [createdOrderId, setCreatedOrderId] = useState(null);
+
+  const articlesModalizeRef = useRef(null);
+  const quantityModalizeRef = useRef(null);
+  const printModalizeRef = useRef(null);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (articlesModalizeRef.current?.isOpen) {
+        articlesModalizeRef.current?.close();
+        return true;
+      }
+      if (quantityModalizeRef.current?.isOpen) {
+        quantityModalizeRef.current?.close();
+        return true;
+      }
+      if (printModalizeRef.current?.isOpen) return true;
+      if (orderLoading) return true;
+      if (orderSuccess) return true;
+
+      if (commandeItems.length > 0 && !orderSuccess) {
+        Alert.alert(
+          "Quitter sans sauvegarder ?",
+          "Vous avez des articles dans votre commande. Voulez-vous vraiment quitter sans sauvegarder ?",
+          [
+            { text: "Rester", style: "cancel" },
+            {
+              text: "Quitter",
+              onPress: () => {
+                dispatch(resetQuotationState());
+                navigation.goBack();
+              },
+            },
+          ],
+        );
+        return true;
+      }
+
+      dispatch(resetQuotationState());
+      navigation.goBack();
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      handleBackPress,
+    );
+    return () => backHandler.remove();
+  }, [navigation, commandeItems, orderLoading, orderSuccess, dispatch]);
+
+  useEffect(() => {
+    const loadValidatedNumbers = async () => {
+      try {
+        const storedNumbers = await AsyncStorage.getItem(
+          "validated_commande_numbers",
+        );
+        if (storedNumbers) setValidatedNumbers(JSON.parse(storedNumbers));
+      } catch (e) {
+        console.error("Erreur lors du chargement de l'historique:", e);
+      }
+    };
+    loadValidatedNumbers();
+    dispatch(resetQuotationState());
+  }, []);
+
+  const saveValidatedNumbers = async (numbers) => {
+    try {
+      await AsyncStorage.setItem(
+        "validated_commande_numbers",
+        JSON.stringify(numbers),
+      );
+    } catch (e) {
+      console.error("Erreur lors de la sauvegarde de l'historique:", e);
+    }
+  };
+
+  const addValidatedNumber = (number) => {
+    if (!validatedNumbers.includes(number)) {
+      const newValidatedNumbers = [number, ...validatedNumbers];
+      const limitedNumbers = newValidatedNumbers.slice(0, 20);
+      setValidatedNumbers(limitedNumbers);
+      saveValidatedNumbers(limitedNumbers);
+    }
+  };
+
+  useEffect(() => {
+    if (isServerReachable) {
+      dispatch(getArticles());
+    }
+  }, [dispatch]);
+
+  const filteredArticles = articles.filter(
+    (article) =>
+      article.designation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.id.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const updateTotals = () => {
+    const ht = commandeItems.reduce((sum, item) => {
+      const discountRate = item.discount ? parseFloat(item.discount) / 100 : 0;
+      const priceAfterDiscount =
+        (parseFloat(item.prix) || 0) * (1 - discountRate);
+      return sum + priceAfterDiscount * (parseFloat(item.quantity) || 0);
+    }, 0);
+    setTotalHT(ht);
+  };
+
+  const handleAddArticle = () => {
+    articlesModalizeRef.current?.open();
+  };
+
+  const handleArticleSelect = (article) => {
+    setSelectedArticle(article);
+    articlesModalizeRef.current?.close();
+    setQuantity("1");
+    setDiscount("0");
+    quantityModalizeRef.current?.open();
+  };
+
+  const handleQuantityConfirm = () => {
+    const qte = parseInt(quantity);
+    const disc = parseFloat(discount);
+
+    if (isNaN(qte) || qte <= 0) {
+      Alert.alert("Erreur", "Veuillez entrer une quantité valide");
+      return;
+    }
+    if (isNaN(disc) || disc < 0 || disc > 100) {
+      Alert.alert("Erreur", "Veuillez entrer une remise valide (0-100%)");
+      return;
+    }
+
+    const existingItemIndex = commandeItems.findIndex(
+      (item) => item.id === selectedArticle.id,
+    );
+
+    if (existingItemIndex !== -1) {
+      const updatedItems = [...commandeItems];
+      updatedItems[existingItemIndex].quantity = qte;
+      updatedItems[existingItemIndex].discount = disc;
+      setCommandeItems(updatedItems);
+    } else {
+      setCommandeItems([
+        ...commandeItems,
+        { ...selectedArticle, quantity: qte, discount: disc },
+      ]);
+    }
+
+    quantityModalizeRef.current?.close();
+    setQuantity("1");
+    setDiscount("0");
+    setSelectedArticle(null);
+    setTimeout(() => updateTotals(), 100);
+  };
+
+  useEffect(() => {
+    updateTotals();
+  }, [handleQuantityConfirm]);
+
+  const handleRemoveItem = (index) => {
+    Alert.alert("Confirmation", "Voulez-vous supprimer cet article ?", [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Supprimer",
+        onPress: () => {
+          const newItems = [...commandeItems];
+          newItems.splice(index, 1);
+          setCommandeItems(newItems);
+          setTimeout(() => updateTotals(), 100);
+          dispatch(resetQuotationState());
+        },
+        style: "destructive",
+      },
+    ]);
+  };
+
+  const handleEditItem = (item, index) => {
+    setSelectedArticle({ ...item, index });
+    setQuantity(item.quantity.toString());
+    setDiscount(item.discount ? item.discount.toString() : "0");
+    quantityModalizeRef.current?.open();
+  };
+
+  const handleSaveCommande = async () => {
+    if (commandeItems.length === 0) {
+      Alert.alert(
+        "Erreur",
+        "Veuillez ajouter au moins un article à la commande",
+      );
+      return;
+    }
+
+    const commandeData = {
+      SalesQuotationType: "ZOFF",
+      SoldToParty: client.kunnr,
+      to_Item: commandeItems.map((item) => {
+        const itemData = {
+          Material: item.id,
+          RequestedQuantity: item.quantity.toString(),
+        };
+        if (item.discount && parseFloat(item.discount) > 0) {
+          itemData.to_PricingElement = [
+            {
+              ConditionType: "ZREM",
+              ConditionRateValue: item.discount.toString(),
+            },
+          ];
+        }
+        return itemData;
+      }),
+    };
+
+    if (motif) {
+      const commandeRetourData = {
+        CustomerReturnType: "ZCRN",
+        SoldToParty: client.kunnr,
+        SDDocumentReason: motif.Augru,
+        to_Item: commandeItems.map((item) => ({
+          Material: item.id,
+          RequestedQuantity: item.quantity.toString(),
+        })),
+      };
+      const orderReturnId = await dispatch(addOrderReturn(commandeRetourData));
+      if (!orderReturnId.error) {
+        setCreatedOrderId(orderReturnId.payload.CustomerReturn);
+      }
+    } else {
+      const orderId = await dispatch(addQuotation(commandeData));
+      if (!orderId.error) {
+        orderId.payload.SalesQuotation &&
+          addValidatedNumber(orderId.payload.SalesQuotation);
+        setCreatedOrderId(orderId.payload.SalesQuotation);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (orderSuccess) {
+      dispatch(
+        getCommandesApprouves({ user: userData?.code, client: client?.kunnr }),
+      );
+      const timer = setTimeout(() => {
+        printModalizeRef.current?.open();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [orderSuccess, dispatch]);
+
+  const handlePrintOrder = async () => {
+    try {
+      const response = await printForms(createdOrderId, "ZCMD");
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Data = reader.result.split(",")[1];
+        const fileUri =
+          FileSystem.documentDirectory + `commande_${createdOrderId}.pdf`;
+        await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri);
+        } else {
+          Alert.alert(
+            "Erreur",
+            "Le partage de fichiers n'est pas disponible sur cet appareil",
+          );
+        }
+      };
+      reader.readAsDataURL(
+        new Blob([response.data], { type: "application/pdf" }),
+      );
+      printModalizeRef.current?.close();
+      cleanupAndNavigateBack();
+    } catch (error) {
+      console.error("Erreur lors de l'impression:", error);
+      Alert.alert("Erreur", "Impossible d'imprimer le document");
+    }
+  };
+
+  const cleanupAndNavigateBack = () => {
+    dispatch(resetQuotationState());
+    navigation.goBack();
+  };
+
+  const renderCommandeItem = ({ item, index }) => (
+    <ArticleCard
+      item={item}
+      onPress={() => handleEditItem(item, index)}
+      onDelete={() => handleRemoveItem(index)}
+    />
+  );
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const screenTitle = motif ? "Commande de Retour" : "Nouvelle Offre";
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+      <ScreenBackground />
+      <StatusBar barStyle="dark-content" />
+
+      {/* Header custom */}
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{screenTitle}</Text>
+        <View style={{ width: scale(36) }} />
+      </View>
+
+      {/* Client */}
+      <View style={styles.clientCard}>
+        <View style={styles.clientIconWrap}>
+          <MaterialIcons name="person" size={scale(20)} color={BLUE} />
+        </View>
+        <View style={styles.clientTextWrap}>
+          <Text style={styles.clientName} numberOfLines={1}>
+            {client.name1}
+          </Text>
+          <Text style={styles.clientCode}>{client.kunnr}</Text>
+        </View>
+        {motif && (
+          <View style={styles.motifBadge}>
+            <Text style={styles.motifBadgeText}>{motif.Bezei}</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Liste des articles */}
+      <View style={styles.listSection}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Articles</Text>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>{commandeItems.length}</Text>
+          </View>
+        </View>
+
+        {commandeItems.length === 0 ? (
+          <View style={styles.emptyList}>
+            <MaterialIcons name="assignment" size={scale(44)} color="#E0E0E0" />
+            <Text style={styles.emptyText}>Aucun article ajouté</Text>
+            <Text style={styles.emptySubtext}>
+              Appuyez sur + pour ajouter des articles
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={commandeItems}
+            renderItem={renderCommandeItem}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            contentContainerStyle={styles.commandeList}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
+
+      {/* <BottomFade height={70} /> */}
+
+      {/* Bouton + flottant */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={handleAddArticle}
+        activeOpacity={0.85}
+      >
+        <MaterialIcons name="add" size={scale(24)} color="#fff" />
+      </TouchableOpacity>
+
+      {/* Footer : total + bouton enregistrer */}
+      <View style={styles.footer}>
+        {orderError && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{orderError}</Text>
+          </View>
+        )}
+
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Total</Text>
+          <PriceDisplay amount={totalHT} intSize={20} decSize={13} />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.saveBtn, orderSuccess && styles.saveBtnSuccess]}
+          onPress={handleSaveCommande}
+          disabled={orderLoading || orderSuccess}
+          activeOpacity={0.85}
+        >
+          {orderLoading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : orderSuccess ? (
+            <MaterialCommunityIcons
+              name="check-circle"
+              size={20}
+              color="#fff"
+            />
+          ) : (
+            <MaterialIcons name="save" size={20} color="#fff" />
+          )}
+          <Text style={styles.saveBtnText}>
+            {orderLoading
+              ? "Enregistrement..."
+              : orderSuccess
+                ? "Enregistré"
+                : "Enregistrer"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Modalize — composants inchangés */}
+      <ArticlesModalize
+        reference={articlesModalizeRef}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        filteredArticles={filteredArticles}
+        handleArticleSelect={handleArticleSelect}
+        scrollY={scrollY}
+      />
+
+      <QuantityModalize
+        reference={quantityModalizeRef}
+        selectedArticle={selectedArticle}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        discount={discount}
+        setDiscount={setDiscount}
+        handleQuantityConfirm={handleQuantityConfirm}
+        motif={motif}
+      />
+
+      <PrintModalize
+        reference={printModalizeRef}
+        createdOrderId={createdOrderId}
+        motif={motif}
+        handlePrintOrder={handlePrintOrder}
+        cleanupAndNavigateBack={cleanupAndNavigateBack}
+      />
+    </SafeAreaView>
+  );
+};
+
+export default QuotationScreen;
+
+const FOOTER_HEIGHT = scale(140);
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
+  },
+  backBtn: {
+    width: scale(36),
+    height: scale(36),
+    borderRadius: scale(50),
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerTitle: {
+    fontSize: fs(22),
+    fontWeight: "700",
+    color: TEXT_DARK,
+  },
+
+  clientCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: Radius.lg,
+    marginHorizontal: Spacing.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  clientIconWrap: {
+    width: scale(38),
+    height: scale(38),
+    borderRadius: scale(50),
+    backgroundColor: "#EAF6FE",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  clientTextWrap: { flex: 1 },
+  clientName: {
+    fontSize: fs(14),
+    fontWeight: "700",
+    color: TEXT_DARK,
+  },
+  clientCode: {
+    fontSize: fs(11),
+    color: TEXT_MUTED,
+    marginTop: 1,
+  },
+  motifBadge: {
+    backgroundColor: "#FFF1E0",
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    maxWidth: scale(110),
+  },
+  motifBadgeText: {
+    fontSize: fs(10),
+    fontWeight: "700",
+    color: "#E8530A",
+  },
+
+  listSection: {
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: fs(15),
+    fontWeight: "700",
+    color: TEXT_DARK,
+  },
+  countBadge: {
+    backgroundColor: "rgba(3,169,244,0.1)",
+    borderRadius: scale(10),
+    paddingHorizontal: scale(7),
+    paddingVertical: scale(1),
+  },
+  countText: {
+    fontSize: fs(11),
+    fontWeight: "700",
+    color: BLUE,
+  },
+
+  emptyList: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: scale(40),
+  },
+  emptyText: {
+    marginTop: Spacing.md,
+    fontSize: fs(14),
+    fontWeight: "700",
+    color: TEXT_MUTED,
+  },
+  emptySubtext: {
+    fontSize: fs(12),
+    color: "#9E9E9E",
+    marginTop: 4,
+  },
+
+  commandeList: {
+    paddingBottom: FOOTER_HEIGHT,
+  },
+
+  addButton: {
+    position: "absolute",
+    right: Spacing.lg,
+    bottom: FOOTER_HEIGHT + Spacing.md,
+    width: scale(52),
+    height: scale(52),
+    borderRadius: scale(26),
+    backgroundColor: "#FFA000",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  footer: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
+  },
+  errorBox: {
+    backgroundColor: "#FFEBEE",
+    padding: Spacing.sm,
+    borderRadius: Radius.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: RED,
+    marginBottom: Spacing.sm,
+  },
+  errorText: {
+    color: "#D32F2F",
+    fontSize: fs(12),
+  },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  totalLabel: {
+    fontSize: fs(13),
+    fontWeight: "600",
+    color: TEXT_MUTED,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    backgroundColor: "#006475",
+    borderRadius: Radius.pill,
+    paddingVertical: Spacing.md,
+  },
+  saveBtnSuccess: {
+    backgroundColor: GREEN,
+  },
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: fs(15),
+  },
+});

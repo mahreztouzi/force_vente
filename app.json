@@ -4,7 +4,7 @@
     "slug": "fastdelivery",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/Logo_no_back.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -21,7 +21,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "/assets/images/Logo_no_back.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.bi2s.fastdelivery",

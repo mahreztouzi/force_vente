@@ -1,8 +1,361 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+// import React, {
+//   useEffect,
+//   useMemo,
+//   useState,
+//   useCallback,
+//   useRef,
+// } from "react";
+// import {
+//   View,
+//   Text,
+//   TextInput,
+//   TouchableOpacity,
+//   FlatList,
+//   StyleSheet,
+//   Image,
+//   ActivityIndicator,
+//   StatusBar,
+// } from "react-native";
+// import { SafeAreaView } from "react-native-safe-area-context";
+// import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+// import { useDispatch, useSelector } from "react-redux";
+// import { Colors, Typography, Spacing, Radius } from "../../constants/Theme";
+// import ScreenBackground from "../../components/common/ScreenBackground";
+// import { getArticles } from "../../redux/slices/articleSlice";
+// import { fs, scale } from "../../utils/responsive";
+// import CartQuantityModal from "../../components/cart/CartQuantityModal";
+// import { getCartItems } from "../../utils/cartStorage";
+// import ArticleFilterModal from "../../components/cart/ArticleFilterModal";
+// import SearchInput from "../../components/common/SearchInput";
+// import { applySorts, applyStockFilter } from "../../utils/articleSort";
+// import ArticleCard from "../../components/common/ArticleCard";
+// import BottomFade from "../../components/common/Bottomfade";
+
+// const HomeScreen = ({ navigation }) => {
+//   const dispatch = useDispatch();
+//   const { articles, loading, error } = useSelector((state) => state.articles);
+
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [selectedCategory, setSelectedCategory] = useState("Tous");
+
+//   // Quantités déjà présentes dans le panier, indexées par id article — pour afficher "X dans le panier" si besoin
+//   const [cartQuantities, setCartQuantities] = useState({});
+
+//   const [selectedArticleForCart, setSelectedArticleForCart] = useState(null);
+//   const cartModalizeRef = useRef(null);
+
+//   const filterModalizeRef = useRef(null);
+//   const [activeSorts, setActiveSorts] = useState([]);
+//   const [stockFilter, setStockFilter] = useState("all");
+//   useEffect(() => {
+//     dispatch(getArticles());
+//   }, [dispatch]);
+
+//   // Charge les quantités existantes du panier au montage (pour pré-remplir visuellement si besoin)
+//   const refreshCartQuantities = useCallback(async () => {
+//     const items = await getCartItems();
+//     const map = {};
+//     items.forEach((it) => {
+//       map[it.id] = it.quantity;
+//     });
+//     setCartQuantities(map);
+//   }, []);
+
+//   useEffect(() => {
+//     refreshCartQuantities();
+//   }, [refreshCartQuantities]);
+
+//   const categories = useMemo(() => {
+//     if (!articles?.length) return ["Tous"];
+//     return [
+//       "Tous",
+//       ...new Set(articles.map((item) => item.Category).filter(Boolean)),
+//     ];
+//   }, [articles]);
+
+//   const filteredArticles = useMemo(() => {
+//     let list = articles || [];
+
+//     if (selectedCategory !== "Tous") {
+//       list = list.filter((item) => item.Category === selectedCategory);
+//     }
+
+//     if (searchQuery.trim()) {
+//       const q = searchQuery.trim().toLowerCase();
+//       list = list.filter((item) =>
+//         (item.designation || "").toLowerCase().includes(q),
+//       );
+//     }
+
+//     list = applyStockFilter(list, stockFilter);
+//     list = applySorts(list, activeSorts);
+
+//     return list;
+//   }, [articles, selectedCategory, searchQuery, stockFilter, activeSorts]);
+
+//   const handleApplyFilters = useCallback((sorts, stock) => {
+//     setActiveSorts(sorts);
+//     setStockFilter(stock);
+//   }, []);
+
+//   const hasActiveFilters = activeSorts.length > 0 || stockFilter !== "all";
+//   const handleArticlePress = useCallback((item) => {
+//     // navigation.navigate("ArticleDetails", { article: item });
+//   }, []);
+
+//   // Ouvre la modalize de quantité au lieu d'ajouter directement
+//   const handleAddToCart = useCallback((item) => {
+//     setSelectedArticleForCart(item);
+//     requestAnimationFrame(() => cartModalizeRef.current?.open());
+//   }, []);
+
+//   const handleCartConfirm = useCallback(() => {
+//     refreshCartQuantities();
+//   }, [refreshCartQuantities]);
+
+//   const renderCategoryChip = ({ item: category }) => {
+//     const isActive = selectedCategory === category;
+//     return (
+//       <TouchableOpacity
+//         style={styles.categoryChip}
+//         onPress={() => setSelectedCategory(category)}
+//         activeOpacity={0.6}
+//       >
+//         <Text
+//           style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}
+//         >
+//           {category}
+//         </Text>
+//         {isActive && <View style={styles.activeUnderline} />}
+//       </TouchableOpacity>
+//     );
+//   };
+
+//   const renderArticleCard = ({ item }) => (
+//     <ArticleCard
+//       item={item}
+//       cartQuantity={cartQuantities[item.id]}
+//       onPress={() => handleArticlePress(item)}
+//       onAddToCart={() => handleAddToCart(item)}
+//     />
+//   );
+//   return (
+//     <SafeAreaView style={styles.safeArea} edges={["top"]}>
+//       <ScreenBackground />
+//       <StatusBar barStyle="dark-content" />
+
+//       <View style={styles.fixedHeader}>
+//         <View style={styles.topBar}>
+//           <Image
+//             source={require("../../assets/images/Logo_no_back.png")}
+//             style={styles.logo}
+//             resizeMode="contain"
+//           />
+//           <View style={styles.taglineWrap}>
+//             <Text style={styles.taglineSmall}>Fast</Text>
+//             <Text style={styles.taglineBig}>Delivery</Text>
+//           </View>
+//         </View>
+//         <SearchInput
+//           placeholder="Rechercher des produits..."
+//           onPress={() =>
+//             navigation.navigate("ArticleSearch", {
+//               onSelectArticle: (article) => {
+//                 // optionnel : naviguer vers le détail, ou simplement laisser fermer l'écran
+//                 // navigation.navigate("ArticleDetails", { article });
+//               },
+//             })
+//           }
+//           onFilterPress={() => filterModalizeRef.current?.open()}
+//           filterActive={hasActiveFilters}
+//           fullWidth
+//         />
+
+//         <FlatList
+//           data={categories}
+//           keyExtractor={(item) => item}
+//           renderItem={renderCategoryChip}
+//           horizontal
+//           showsHorizontalScrollIndicator={false}
+//           contentContainerStyle={styles.categoriesList}
+//         />
+//       </View>
+
+//       <FlatList
+//         data={filteredArticles}
+//         keyExtractor={(item) => String(item.id)}
+//         renderItem={renderArticleCard}
+//         numColumns={2}
+//         columnWrapperStyle={styles.row}
+//         contentContainerStyle={styles.listContent}
+//         showsVerticalScrollIndicator={false}
+//         ListHeaderComponent={
+//           <View>
+//             {error && (
+//               <Text style={styles.errorText}>
+//                 Une erreur est survenue lors du chargement des articles.
+//               </Text>
+//             )}
+//           </View>
+//         }
+//         ListEmptyComponent={
+//           loading ? (
+//             <ActivityIndicator
+//               size="large"
+//               color={Colors.primary}
+//               style={styles.loader}
+//             />
+//           ) : (
+//             <View style={styles.emptyWrap}>
+//               <Ionicons
+//                 name="cube-outline"
+//                 size={scale(48)}
+//                 color={Colors.textMuted}
+//               />
+//               <Text style={styles.emptyText}>Aucun article trouvé</Text>
+//             </View>
+//           )
+//         }
+//       />
+
+//       <CartQuantityModal
+//         reference={cartModalizeRef}
+//         article={selectedArticleForCart}
+//         onConfirm={handleCartConfirm}
+//       />
+
+//       <ArticleFilterModal
+//         reference={filterModalizeRef}
+//         initialSorts={activeSorts}
+//         initialStockFilter={stockFilter}
+//         onApply={handleApplyFilters}
+//       />
+//       <BottomFade />
+//     </SafeAreaView>
+//   );
+// };
+
+// export default HomeScreen;
+
+// const CARD_GAP = Spacing.md;
+
+// const styles = StyleSheet.create({
+//   safeArea: {
+//     flex: 1,
+//   },
+//   fixedHeader: {
+//     paddingHorizontal: 7,
+//     paddingTop: Spacing.md,
+//     backgroundColor: "transparent",
+//   },
+//   listContent: {
+//     paddingHorizontal: 2,
+//     paddingTop: Spacing.md,
+//   },
+//   row: {
+//     justifyContent: "space-between",
+//   },
+//   topBar: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     justifyContent: "flex-start",
+//     // marginBottom: 8,
+//   },
+//   logo: {
+//     width: scale(40),
+//     height: scale(40),
+//   },
+//   taglineWrap: {
+//     marginLeft: 10,
+//     justifyContent: "center",
+//   },
+//   taglineSmall: {
+//     fontSize: fs(12),
+//     fontWeight: "500",
+//     color: "rgba(0,0,0,0.45)",
+//     letterSpacing: 2,
+//     textTransform: "capitalize",
+//     marginBottom: 0,
+//     marginLeft: 1,
+//   },
+//   taglineBig: {
+//     fontSize: fs(22),
+//     fontWeight: "900",
+//     color: "black",
+//     letterSpacing: 0.6,
+//     lineHeight: fs(22),
+//   },
+//   searchWrap: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     backgroundColor: Colors.white,
+//     borderRadius: 30,
+//     borderWidth: 2,
+//     borderColor: "black",
+//     paddingHorizontal: 10,
+//     height: scale(52),
+//     width: "100%",
+//     gap: Spacing.sm,
+//     marginBottom: Spacing.md,
+//   },
+//   searchInput: {
+//     flex: 1,
+//     ...Typography.body,
+//     fontWeight: "400",
+//   },
+//   categoriesList: {
+//     gap: Spacing.xl,
+//     paddingBottom: Spacing.md,
+//   },
+//   categoryChip: {
+//     paddingVertical: Spacing.xs,
+//     alignItems: "center",
+//   },
+//   categoryLabel: {
+//     fontSize: fs(15),
+//     fontWeight: "400",
+//     color: "rgba(0,0,0,0.4)",
+//   },
+//   categoryLabelActive: {
+//     color: "black",
+//     fontWeight: "900",
+//   },
+//   activeUnderline: {
+//     marginTop: 4,
+//     width: 15,
+//     height: 2,
+//     backgroundColor: "black",
+//     borderRadius: 2,
+//   },
+
+//   loader: {
+//     marginTop: Spacing.xxxl,
+//   },
+//   emptyWrap: {
+//     alignItems: "center",
+//     marginTop: Spacing.xxxl,
+//     gap: Spacing.sm,
+//   },
+//   emptyText: {
+//     ...Typography.caption,
+//   },
+//   errorText: {
+//     color: Colors.error,
+//     fontSize: fs(12),
+//     marginBottom: Spacing.md,
+//   },
+// });
+
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -11,46 +364,19 @@ import {
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { Colors, Typography, Spacing, Radius } from "../../constants/Theme";
 import ScreenBackground from "../../components/common/ScreenBackground";
 import { getArticles } from "../../redux/slices/articleSlice";
 import { fs, scale } from "../../utils/responsive";
-
-// Icône générique par catégorie — fallback si la catégorie ne matche aucune entrée connue
-const CATEGORY_ICONS = {
-  default: "shape-outline",
-};
-
-const getCategoryIcon = (category) => {
-  const key = (category || "").toLowerCase();
-  if (
-    key.includes("phone") ||
-    key.includes("telephone") ||
-    key.includes("téléphone")
-  )
-    return "cellphone";
-  if (
-    key.includes("ordinateur") ||
-    key.includes("pc") ||
-    key.includes("laptop")
-  )
-    return "laptop";
-  if (
-    key.includes("mode") ||
-    key.includes("vetement") ||
-    key.includes("vêtement")
-  )
-    return "tshirt-crew-outline";
-  if (key.includes("electro") || key.includes("électro") || key.includes("tv"))
-    return "television";
-  if (key.includes("maison") || key.includes("meuble")) return "sofa-outline";
-  return CATEGORY_ICONS.default;
-};
-
-// Hauteur réelle de la tab bar custom (cf. BottomTabs.jsx : height 78 + marge de sécurité)
-const TAB_BAR_HEIGHT = scale(78) + scale(20);
+import CartQuantityModal from "../../components/cart/CartQuantityModal";
+import { getCartItems } from "../../utils/cartStorage";
+import ArticleFilterModal from "../../components/cart/ArticleFilterModal";
+import SearchInput from "../../components/common/SearchInput";
+import { applySorts, applyStockFilter } from "../../utils/articleSort";
+import ArticleCard from "../../components/common/ArticleCard";
+import BottomFade from "../../components/common/Bottomfade";
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -58,12 +384,39 @@ const HomeScreen = ({ navigation }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Tous");
+  const [cartQuantities, setCartQuantities] = useState({});
+  const [selectedArticleForCart, setSelectedArticleForCart] = useState(null);
+  const [activeSorts, setActiveSorts] = useState([]);
+  const [stockFilter, setStockFilter] = useState("all");
+
+  // ── Modale filtre ──────────────────────────
+  const [filterVisible, setFilterVisible] = useState(false);
+  // Position du bouton filtre mesurée pour ancrer la modale juste en dessous
+  const [filterAnchor, setFilterAnchor] = useState({
+    top: scale(100),
+    right: scale(12),
+  });
+  const filterBtnRef = useRef(null);
+
+  const cartModalizeRef = useRef(null);
 
   useEffect(() => {
     dispatch(getArticles());
   }, [dispatch]);
 
-  // Familles dérivées dynamiquement des articles
+  const refreshCartQuantities = useCallback(async () => {
+    const items = await getCartItems();
+    const map = {};
+    items.forEach((it) => {
+      map[it.id] = it.quantity;
+    });
+    setCartQuantities(map);
+  }, []);
+
+  useEffect(() => {
+    refreshCartQuantities();
+  }, [refreshCartQuantities]);
+
   const categories = useMemo(() => {
     if (!articles?.length) return ["Tous"];
     return [
@@ -72,32 +425,48 @@ const HomeScreen = ({ navigation }) => {
     ];
   }, [articles]);
 
-  // Filtrage catégorie + recherche
   const filteredArticles = useMemo(() => {
     let list = articles || [];
-
     if (selectedCategory !== "Tous") {
       list = list.filter((item) => item.Category === selectedCategory);
     }
-
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((item) =>
         (item.designation || "").toLowerCase().includes(q),
       );
     }
-
+    list = applyStockFilter(list, stockFilter);
+    list = applySorts(list, activeSorts);
     return list;
-  }, [articles, selectedCategory, searchQuery]);
+  }, [articles, selectedCategory, searchQuery, stockFilter, activeSorts]);
 
-  const handleArticlePress = useCallback((item) => {
-    // Branche ici la navigation vers le détail article si elle existe déjà
-    // navigation.navigate("ArticleDetails", { article: item });
+  const handleApplyFilters = useCallback((sorts, stock) => {
+    setActiveSorts(sorts);
+    setStockFilter(stock);
   }, []);
+
+  const hasActiveFilters = activeSorts.length > 0 || stockFilter !== "all";
+
+  // Mesure la position du bouton filtre puis ouvre la modale
+  const handleOpenFilter = () => {
+    filterBtnRef.current?.measure((_x, _y, _w, h, _px, pageY) => {
+      setFilterAnchor({
+        top: pageY + h + scale(6), // juste sous le bouton + petit gap
+        right: scale(12),
+      });
+      setFilterVisible(true);
+    });
+  };
 
   const handleAddToCart = useCallback((item) => {
-    // Branche ici l'action panier existante (ex: dispatch(addToCart(item)))
+    setSelectedArticleForCart(item);
+    requestAnimationFrame(() => cartModalizeRef.current?.open());
   }, []);
+
+  const handleCartConfirm = useCallback(() => {
+    refreshCartQuantities();
+  }, [refreshCartQuantities]);
 
   const renderCategoryChip = ({ item: category }) => {
     const isActive = selectedCategory === category;
@@ -112,62 +481,18 @@ const HomeScreen = ({ navigation }) => {
         >
           {category}
         </Text>
-
         {isActive && <View style={styles.activeUnderline} />}
       </TouchableOpacity>
     );
   };
 
   const renderArticleCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.articleCard}
-      onPress={() => handleArticlePress(item)}
-      activeOpacity={0.85}
-    >
-      <View style={styles.articleImageWrap}>
-        {item.image ? (
-          <Image
-            source={{ uri: item.image }}
-            style={styles.articleImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.articleImagePlaceholder}>
-            <MaterialCommunityIcons
-              name={getCategoryIcon(item.Category)}
-              size={scale(36)}
-              color={Colors.textMuted}
-            />
-          </View>
-        )}
-      </View>
-
-      <View style={styles.articleInfo}>
-        <Text style={styles.articleName} numberOfLines={1}>
-          {item.designation}
-        </Text>
-        <View style={styles.articleFooter}>
-          <Text style={styles.articlePrice}>
-            {parseFloat(item.prix || 0).toLocaleString("fr-DZ", {
-              style: "currency",
-              currency: "DZD",
-            })}
-          </Text>
-          <TouchableOpacity
-            style={styles.addToCartBtn}
-            onPress={() => handleAddToCart(item)}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name="cart-outline"
-              size={19}
-              color="black"
-              style={{ opacity: 1 }}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </TouchableOpacity>
+    <ArticleCard
+      item={item}
+      cartQuantity={cartQuantities[item.id]}
+      onPress={() => {}}
+      onAddToCart={() => handleAddToCart(item)}
+    />
   );
 
   return (
@@ -175,52 +500,33 @@ const HomeScreen = ({ navigation }) => {
       <ScreenBackground />
       <StatusBar barStyle="dark-content" />
 
-      {/* Bloc FIXE : recherche + filtres ne défilent jamais */}
       <View style={styles.fixedHeader}>
-        {/* Logo + profil : SCROLLE avec les articles, disparait au scroll */}
         <View style={styles.topBar}>
           <Image
             source={require("../../assets/images/Logo_no_back.png")}
             style={styles.logo}
             resizeMode="contain"
           />
-          {/* <TouchableOpacity
-            style={styles.profileBtn}
-            onPress={() => navigation.navigate("Profile")}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="person" size={scale(18)} color={Colors.primary} />
-          </TouchableOpacity> */}
+          <View style={styles.taglineWrap}>
+            <Text style={styles.taglineSmall}>Fast</Text>
+            <Text style={styles.taglineBig}>Delivery</Text>
+          </View>
         </View>
-        <View style={styles.searchWrap}>
-          <Ionicons
-            name="search"
-            size={scale(25)}
-            color={"white"}
-            style={{
-              backgroundColor: "black",
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-              borderRadius: 30,
-            }}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher des produits..."
-            placeholderTextColor={Colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery !== "" && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons
-                name="close-circle"
-                size={scale(18)}
-                color={Colors.textMuted}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
+
+        {/* SearchInput avec ref sur le bouton filtre via onFilterRef */}
+        <SearchInput
+          placeholder="Rechercher des produits..."
+          onPress={() =>
+            navigation.navigate("ArticleSearch", {
+              onSelectArticle: () => {},
+            })
+          }
+          // On passe la ref du bouton filtre et le handler d'ouverture
+          filterBtnRef={filterBtnRef}
+          onFilterPress={handleOpenFilter}
+          filterActive={hasActiveFilters}
+          fullWidth
+        />
 
         <FlatList
           data={categories}
@@ -241,13 +547,11 @@ const HomeScreen = ({ navigation }) => {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <View>
-            {error && (
-              <Text style={styles.errorText}>
-                Une erreur est survenue lors du chargement des articles.
-              </Text>
-            )}
-          </View>
+          error ? (
+            <Text style={styles.errorText}>
+              Une erreur est survenue lors du chargement des articles.
+            </Text>
+          ) : null
         }
         ListEmptyComponent={
           loading ? (
@@ -268,77 +572,73 @@ const HomeScreen = ({ navigation }) => {
           )
         }
       />
+
+      <CartQuantityModal
+        reference={cartModalizeRef}
+        article={selectedArticleForCart}
+        onConfirm={handleCartConfirm}
+      />
+
+      {/* Modale filtre style Outlook — positionnée sous le bouton */}
+      <ArticleFilterModal
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        anchorTop={filterAnchor.top}
+        anchorRight={filterAnchor.right}
+        initialSorts={activeSorts}
+        initialStockFilter={stockFilter}
+        onApply={handleApplyFilters}
+      />
+
+      <BottomFade />
     </SafeAreaView>
   );
 };
 
 export default HomeScreen;
 
-const CARD_GAP = Spacing.md;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    // flex: 1,
-    height: "93%",
-  },
-
-  // Header fixe (recherche + catégories)
+  safeArea: { flex: 1 },
   fixedHeader: {
     paddingHorizontal: 7,
     paddingTop: Spacing.md,
     backgroundColor: "transparent",
   },
-
   listContent: {
     paddingHorizontal: 2,
     paddingTop: Spacing.md,
-    // height: "90%",
   },
   row: {
     justifyContent: "space-between",
   },
-
-  // Top bar (logo + profil) — scrolle avec la liste
   topBar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
+    justifyContent: "flex-start",
   },
   logo: {
     width: scale(40),
     height: scale(40),
   },
-  profileBtn: {
-    width: scale(38),
-    height: scale(38),
-    borderRadius: scale(19),
-    backgroundColor: Colors.primaryLight,
-    alignItems: "center",
+  taglineWrap: {
+    marginLeft: 10,
     justifyContent: "center",
   },
-
-  // Search — SANS ombre (Shadows.card retiré)
-  searchWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.white,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "black",
-    paddingHorizontal: 10,
-    height: scale(52),
-    width: "100%",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
+  taglineSmall: {
+    fontSize: fs(12),
+    fontWeight: "500",
+    color: "rgba(0,0,0,0.45)",
+    letterSpacing: 2,
+    textTransform: "capitalize",
+    marginLeft: 1,
   },
-  searchInput: {
-    flex: 1,
-    ...Typography.body,
-    fontWeight: "400",
+  taglineBig: {
+    fontSize: fs(22),
+    fontWeight: "900",
+    color: "black",
+    letterSpacing: 0.6,
+    lineHeight: fs(22),
   },
-
-  // Catégories — texte seul, gras quand actif
   categoriesList: {
     gap: Spacing.xl,
     paddingBottom: Spacing.md,
@@ -347,92 +647,29 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     alignItems: "center",
   },
-
   categoryLabel: {
     fontSize: fs(15),
     fontWeight: "400",
     color: "rgba(0,0,0,0.4)",
   },
-
   categoryLabelActive: {
     color: "black",
     fontWeight: "900",
   },
-
   activeUnderline: {
     marginTop: 4,
-    width: 15, // 50% du conteneur
+    width: 15,
     height: 2,
     backgroundColor: "black",
     borderRadius: 2,
   },
-
-  // Article card
-  articleCard: {
-    width: "49.5%",
-    backgroundColor: "rgba(255, 255, 255, 0.52)",
-    borderRadius: 3,
-    marginBottom: CARD_GAP,
-    overflow: "hidden",
-    // borderWidth: 1,
-    // borderColor: Colors.border,
-  },
-  articleImageWrap: {
-    width: "100%",
-    height: scale(170),
-    backgroundColor: Colors.primaryLight,
-  },
-  articleImage: {
-    width: "100%",
-    height: "100%",
-  },
-  articleImagePlaceholder: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  articleInfo: {
-    padding: Spacing.md,
-  },
-  articleName: {
-    ...Typography.body,
-    fontSize: fs(13),
-    marginBottom: Spacing.sm,
-  },
-  articleFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  articlePrice: {
-    // ...Typography.h3,
-    fontSize: fs(18),
-    fontWeight: "bold",
-    letterSpacing: 0.5,
-    color: "rgba(18, 35, 46, 0.8)",
-  },
-  addToCartBtn: {
-    width: scale(40),
-    height: scale(26),
-    borderRadius: scale(15),
-    borderWidth: 1.5,
-    borderColor: "black",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  // Empty / loading
-  loader: {
-    marginTop: Spacing.xxxl,
-  },
+  loader: { marginTop: Spacing.xxxl },
   emptyWrap: {
     alignItems: "center",
     marginTop: Spacing.xxxl,
     gap: Spacing.sm,
   },
-  emptyText: {
-    ...Typography.caption,
-  },
+  emptyText: { ...Typography.caption },
   errorText: {
     color: Colors.error,
     fontSize: fs(12),

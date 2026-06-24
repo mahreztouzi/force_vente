@@ -12,7 +12,6 @@ export const connectionCheckStarted = () => ({
 export const getClients = createAsyncThunk(
   "clients/getClients",
   async ({ grpVendeur }, { getState, dispatch }) => {
-    console.log("groupe de vendeur", grpVendeur);
     dispatch(connectionCheckStarted());
     const isFullyConnected = await isConnected();
 
@@ -22,9 +21,9 @@ export const getClients = createAsyncThunk(
       return cached;
     }
     const clients = await fetchClients(grpVendeur);
-    console.log("groupe de vendeur", grpVendeur, clients);
+    console.log("get client grpvendeur", grpVendeur, clients);
     return clients;
-  }
+  },
 );
 
 // Charger les favoris depuis AsyncStorage
@@ -38,7 +37,7 @@ export const loadFavorites = createAsyncThunk(
       console.error("Erreur lors du chargement des favoris:", error);
       return [];
     }
-  }
+  },
 );
 
 // Ajouter/supprimer un client des favoris
@@ -61,7 +60,7 @@ export const toggleFavorite = createAsyncThunk(
       // Sauvegarder dans AsyncStorage
       await AsyncStorage.setItem(
         "clientFavorites",
-        JSON.stringify(newFavorites)
+        JSON.stringify(newFavorites),
       );
 
       return newFavorites;
@@ -69,7 +68,7 @@ export const toggleFavorite = createAsyncThunk(
       console.error("Erreur lors de la modification des favoris:", error);
       return getState().clients.favorites;
     }
-  }
+  },
 );
 
 // Thunk pour récupérer l'état des clients
@@ -87,7 +86,7 @@ export const getClientEtat = createAsyncThunk(
     const clientsEtat = await fetchClientEtat(codeUtilisateur);
     console.log("État des clients:", clientsEtat);
     return clientsEtat;
-  }
+  },
 );
 
 // Créer le slice Redux
