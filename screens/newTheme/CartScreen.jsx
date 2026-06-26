@@ -32,7 +32,7 @@ import SearchInput from "../../components/common/SearchInput";
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-
+  const userData = useSelector((state) => state.auth.user);
   const { clients } = useSelector((state) => state.clients);
   const {
     loading: orderLoading,
@@ -60,7 +60,9 @@ const CartScreen = ({ navigation }) => {
   );
 
   useEffect(() => {
-    dispatch(getClients());
+    const grp = userData?.grp;
+    if (!grp) return;
+    dispatch(getClients({ grpVendeur: grp }));
   }, [dispatch]);
 
   useEffect(() => {

@@ -135,19 +135,26 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       onPress: () => navigation.navigate("allOutbounds", { client }),
     },
     {
-      key: "historique_encaissements",
-      label: "Historique Encaissements",
-      subtitle: "Consulter les paiements",
+      key: "historique_offres",
+      label: "Historique des Offres",
+      subtitle: "Consulter les offres",
       icon: "history",
       onPress: () => navigation.navigate("quotation_liste", { client }),
     },
-    // {
-    //   key: "brouillon",
-    //   label: "Brouillon",
-    //   subtitle: "Voir les brouillons",
-    //   icon: "note-text-outline",
-    //   onPress: () => navigation.navigate("brouillon", { client }),
-    // },
+    {
+      key: "historique_commandes",
+      label: "Historique des Commandes",
+      subtitle: "Consulter les commandes",
+      icon: "history",
+      onPress: () => navigation.navigate("all_orders", { client }),
+    },
+    {
+      key: "brouillon",
+      label: "Brouillon",
+      subtitle: "Voir les brouillons",
+      icon: "note-text-outline",
+      onPress: () => navigation.navigate("brouillon", { client }),
+    },
   ];
 
   const montantSplit = splitAmount(client.solde);
@@ -280,12 +287,14 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   onPress={action.onPress}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.tileTitle}>{action.label}</Text>
-                  {action.subtitle && (
-                    <Text style={styles.tileSubtitle} numberOfLines={2}>
-                      {action.subtitle}
-                    </Text>
-                  )}
+                  <View style={styles.titleGroup}>
+                    <Text style={styles.tileTitle}>{action.label}</Text>
+                    {action.subtitle && (
+                      <Text style={styles.tileSubtitle} numberOfLines={1}>
+                        {action.subtitle}
+                      </Text>
+                    )}
+                  </View>
 
                   <View style={styles.tileIconWrap}>
                     <MaterialCommunityIcons
@@ -514,13 +523,14 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: "33%",
+    height: "26.5%",
     minHeight: scale(100),
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: BORDER,
     borderRadius: Radius.md,
     padding: Spacing.md,
-    // justifyContent: "space-between",
+    justifyContent: "space-between",
   },
   tileTitle: {
     fontSize: fs(12.5),
@@ -541,7 +551,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-start",
-    marginTop: Spacing.xxxl,
+    // marginTop: Spacing.xxxl,
   },
 
   // Modalize motifs

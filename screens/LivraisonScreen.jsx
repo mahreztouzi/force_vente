@@ -49,500 +49,6 @@ import { Modalize } from "react-native-modalize";
 const { width, height } = Dimensions.get("window");
 import { wp, hp, fs, fontWeight, scale } from "../utils/responsive";
 
-// const LivraisonScreen = ({ route }) => {
-//   const navigation = useNavigation();
-//   const { client } = route.params;
-//   const dispatch = useDispatch();
-
-//   const userData = useSelector((state) => state.auth.user);
-
-//   const {
-//     ordersApprouve,
-//     loadingOrdersApprouve: loading,
-//     errorOrdersApprouve: error,
-//   } = useSelector((state) => state.orders);
-
-//   const { isConnected, isServerReachable, offlineLivraisons } = useSelector(
-//     (state) => state.offline
-//   );
-//   const [searchQuery, setSearchQuery] = useState("");
-//   const [filteredCommandes, setFilteredCommandes] = useState([]);
-//   const [expandedCommande, setExpandedCommande] = useState(null);
-//   const [showofflineLivraisons, setShowofflineLivraisons] = useState(false);
-//   const [showScrollToTop, setShowScrollToTop] = useState(false);
-//   const scrollY = useRef(new Animated.Value(0)).current;
-//   const flatListRef = useRef(null);
-
-//   const handleScroll = Animated.event(
-//     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-//     {
-//       useNativeDriver: false,
-//       listener: (event) => {
-//         const offsetY = event.nativeEvent.contentOffset.y;
-//         setShowScrollToTop(offsetY > 200); // Affiche le bouton après 200px de scroll
-//       },
-//     }
-//   );
-//   const scrollToTop = () => {
-//     flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
-//   };
-
-//   // Configuration du header avec headerRight
-//   useLayoutEffect(() => {
-//     navigation.setOptions({
-//       headerRight: () => (
-//         <HeaderRightButton
-//           navigation={navigation}
-//           client={route.params}
-//           link="allOutbounds"
-//         />
-//       ),
-//     });
-//   }, [navigation, client]);
-//   useEffect(() => {
-//     const handleBackPress = () => {
-//       // Comportement normal - retourner à l'écran précédent
-//       navigation.goBack();
-//       return true;
-//     };
-
-//     const backHandler = BackHandler.addEventListener(
-//       "hardwareBackPress",
-//       handleBackPress
-//     );
-//     return () => backHandler.remove();
-//   }, [navigation]);
-
-//   useEffect(() => {
-//     dispatch(
-//       getCommandesApprouves({
-//         user: userData?.code,
-//         // client: client?.kunnr,
-//       })
-//     );
-//   }, [dispatch, client]);
-
-//   useFocusEffect(
-//     useCallback(() => {
-//       dispatch(loadOfflineLivraisons(client));
-//       dispatch(fetchPendingActionsCount()); // Recharger la liste
-//     }, [navigation, offlineLivraisons.length])
-//   );
-
-//   useEffect(() => {
-//     // Filtrer les commandes en fonction de la recherche
-//     if (ordersApprouve.length > 0) {
-//       const grouped = groupCommandesByCommercialAndClient(
-//         ordersApprouve.filter((order) => order.client === client?.kunnr)
-//       );
-
-//       if (searchQuery.trim() === "") {
-//         setFilteredCommandes(grouped);
-//       } else {
-//         const filtered = grouped.filter(
-//           (item) =>
-//             item.cmd.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//             item.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//             (item.clientName &&
-//               item.clientName.toLowerCase().includes(searchQuery.toLowerCase()))
-//         );
-//         setFilteredCommandes(filtered);
-//       }
-//     }
-//   }, [ordersApprouve, searchQuery]);
-
-//   // Fonction pour convertir une date SAP au format jj mmmm aaaa
-//   const convertirDateSAP = (dateSAP) => {
-//     // Extraire le timestamp (millisecondes) de la chaîne SAP
-//     const timestampMatch = dateSAP.match(/\/Date\((\d+)\)\//);
-//     console.log(dateSAP);
-
-//     if (!timestampMatch || timestampMatch.length < 2) {
-//       return "Format de date invalide";
-//     }
-
-//     const timestamp = parseInt(timestampMatch[1]);
-//     const date = new Date(timestamp);
-
-//     // Options pour le format de date
-//     const options = {
-//       day: "2-digit",
-//       month: "long",
-//       year: "numeric",
-//     };
-
-//     // Formater la date en français
-//     return date.toLocaleDateString("fr-FR", options);
-//   };
-
-//   const groupCommandesByCommercialAndClient = (commandesList) => {
-//     // Transformer la liste de commandes en la regroupant par cmd, commercial, client
-//     const groupedObj = {};
-
-//     // Mapping direct du statut d'entête vers le statut global
-//     const statutMapping = {
-//       initial: "Non Livré",
-//       encours: "Partiellement livré",
-//       termine: "Terminé",
-//     };
-//     commandesList.forEach((item) => {
-//       const key = `${item.cmd}-${item.commercial}-${item.client}`;
-
-//       const statutGlobal = statutMapping[item.statu_global];
-//       if (!groupedObj[key]) {
-//         groupedObj[key] = {
-//           cmd: item.cmd,
-//           commercial: item.commercial,
-//           client: item.client,
-//           clientName: client.name1, // Ajoutez le nom du client si disponible
-//           codeSociete: item.bukrs,
-//           erdat: convertirDateSAP(item.erdat),
-//           vgbel: item.vgbel,
-//           articles: [],
-//           totalArticles: 0,
-//           totalQuantity: 0,
-//           isModified: item.isModified || false,
-//           statutGlobal,
-//         };
-//       }
-
-//       // Ajouter l'article à la commande
-//       groupedObj[key].articles.push({
-//         matnr: item.matnr,
-//         posnr: item.posnr,
-//         charg: item.charg,
-//         kmein: item.kmein,
-//         kbetr: parseFloat(item.prix_unitaire),
-//         lsmeng: parseFloat(item.lsmeng),
-//         qte_restante: parseFloat(item.qte_restante),
-//         designation: item.maktx || `Article ${item.matnr}`,
-//       });
-
-//       // Mettre à jour les totaux
-//       groupedObj[key].totalArticles += 1;
-//       groupedObj[key].totalQuantity += parseFloat(item.lsmeng);
-//     });
-
-//     // Convertir l'objet en tableau
-//     return Object.values(groupedObj);
-//   };
-
-//   const handleCommandePress = (item) => {
-//     if (expandedCommande === item.cmd) {
-//       setExpandedCommande(null);
-//     } else {
-//       setExpandedCommande(item.cmd);
-//     }
-//   };
-
-//   const handleCreateLivraison = (order) => {
-//     // Naviguer vers l'écran de création de livraison avec les données de la commande
-//     navigation.navigate("create_livraison", { order, client });
-//   };
-
-//   const handlePrintLivraison = (commande) => {
-//     Alert.alert(
-//       "Impression",
-//       `Préparation de l'impression pour la commande ${commande.cmd}`
-//     );
-//     // Intégrez ici la logique d'impression
-//   };
-
-//   const renderCommandeItem = ({ item }) => {
-//     const isExpanded = expandedCommande === item.cmd;
-
-//     return (
-//       <View style={styles.commandeContainer}>
-//         <TouchableOpacity
-//           style={styles.commandeHeader}
-//           onPress={() => handleCommandePress(item)}
-//         >
-//           <View style={styles.commandeInfo}>
-//             <Text style={styles.commandeDate}>Commande N°:</Text>
-//             <Text style={styles.commandeNumber}>{item.cmd}</Text>
-//             <Text style={styles.commandeDate}></Text>
-//             <Text style={styles.commandeDate}>Offre N°</Text>
-//             <Text style={styles.clientName}>{item.vgbel}</Text>
-//             {/* <Text style={styles.commandeDate}>{item.erdat}</Text> */}
-//           </View>
-//           <View style={styles.commandeStats}>
-//             <Text style={styles.statsText}>{item.totalArticles} articles</Text>
-//             {/* Badge statut moderne */}
-//             <View
-//               style={[
-//                 styles.statusBadge,
-//                 {
-//                   backgroundColor:
-//                     item.status === "initial"
-//                       ? "#3B82F620"
-//                       : item.status === "encours"
-//                       ? "#10B98120"
-//                       : "#8B5CF620",
-//                 },
-//               ]}
-//             >
-//               <View
-//                 style={[
-//                   styles.statusDot,
-//                   {
-//                     backgroundColor:
-//                       item.status === "initial"
-//                         ? "#3B82F6"
-//                         : item.status === "encours"
-//                         ? "#10B981"
-//                         : "#8B5CF6",
-//                   },
-//                 ]}
-//               />
-//               <Text
-//                 style={[
-//                   styles.statusBadgeText,
-//                   {
-//                     color:
-//                       item.status === "initial"
-//                         ? "#3B82F6"
-//                         : item.status === "encours"
-//                         ? "#10B981"
-//                         : "#8B5CF6",
-//                   },
-//                 ]}
-//               >
-//                 {item.statutGlobal}
-//               </Text>
-//             </View>
-//             <View style={styles.expandIcon}>
-//               <MaterialIcons
-//                 name={isExpanded ? "expand-less" : "expand-more"}
-//                 size={24}
-//                 color="#03A9F4"
-//               />
-//             </View>
-//           </View>
-//         </TouchableOpacity>
-
-//         {isExpanded && (
-//           <View style={styles.commandeDetails}>
-//             <Text style={styles.detailsTitle}>Détails des articles</Text>
-
-//             {/* En-tête du tableau */}
-//             <View style={styles.tableHeader}>
-//               <Text style={[styles.tableHeaderText, styles.codeColumn]}>
-//                 Code
-//               </Text>
-//               <Text style={[styles.tableHeaderText, styles.designationColumn]}>
-//                 Désignation
-//               </Text>
-//               <Text style={[styles.tableHeaderText, styles.qteCommandeColumn]}>
-//                 Qté Cmd
-//               </Text>
-//               <Text style={[styles.tableHeaderText, styles.qteRestanteColumn]}>
-//                 Qté Rest.
-//               </Text>
-//             </View>
-
-//             {/* Corps du tableau */}
-//             <FlatList
-//               data={item.articles}
-//               keyExtractor={(article, index) => `${article.matnr}-${index}`}
-//               renderItem={({ item: article }) => (
-//                 <View style={styles.tableRow}>
-//                   <Text style={[styles.tableCellText, styles.codeColumn]}>
-//                     {article.matnr}
-//                   </Text>
-//                   <Text
-//                     style={[styles.tableCellText, styles.designationColumn]}
-//                     numberOfLines={2}
-//                   >
-//                     {article.designation}
-//                   </Text>
-//                   <Text
-//                     style={[styles.tableCellText, styles.qteCommandeColumn]}
-//                   >
-//                     {parseFloat(article.lsmeng).toFixed(2)} {article.kmein}
-//                   </Text>
-//                   <Text
-//                     style={[
-//                       styles.tableCellText,
-//                       styles.qteRestanteColumn,
-//                       parseFloat(article.qte_restante) <= 0
-//                         ? styles.negativeRemaining
-//                         : styles.positiveRemaining,
-//                     ]}
-//                   >
-//                     {parseFloat(article.qte_restante).toFixed(2)}{" "}
-//                     {article.kmein}
-//                   </Text>
-//                 </View>
-//               )}
-//               contentContainerStyle={styles.articlesList}
-//             />
-
-//             {/* Actions */}
-//             <View style={styles.actionsContainer}>
-//               <TouchableOpacity
-//                 style={styles.actionButton}
-//                 onPress={() => handleCreateLivraison(item)}
-//               >
-//                 <MaterialIcons name="local-shipping" size={20} color="white" />
-//                 <Text style={styles.actionButtonText}>Livrer</Text>
-//               </TouchableOpacity>
-//             </View>
-//           </View>
-//         )}
-//       </View>
-//     );
-//   };
-
-//   // const renderCommandeItem = ({ item }) => (
-//   //   <CommandeItem
-//   //     item={item}
-//   //     expandedCommande={expandedCommande}
-//   //     handleCommandePress={handleCommandePress}
-//   //     handleCreateLivraison={handleCreateLivraison}
-//   //     styles={styles}
-//   //   />
-//   // );
-
-//   const handleRefresh = () => {
-//     dispatch(loadOfflineLivraisons());
-//     dispatch(fetchPendingActionsCount());
-//     dispatch(
-//       getCommandesApprouves({
-//         user: userData?.code,
-//       })
-//     );
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <StatusBar backgroundColor="#03A9F4" barStyle="light-content" />
-//       <View style={styles.toggleContainer}>
-//         <TouchableOpacity
-//           style={[
-//             styles.toggleButton,
-//             !showofflineLivraisons && styles.activeToggleButton,
-//           ]}
-//           onPress={() => setShowofflineLivraisons(false)}
-//         >
-//           <Text
-//             style={[
-//               styles.toggleButtonText,
-//               !showofflineLivraisons && styles.activeToggleButtonText,
-//             ]}
-//           >
-//             Commandes à livrer
-//           </Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={[
-//             styles.toggleButton,
-//             showofflineLivraisons && styles.activeToggleButton,
-//           ]}
-//           onPress={() => {
-//             setShowofflineLivraisons(true);
-//             scrollToTop;
-//             setShowScrollToTop(false);
-//           }}
-//         >
-//           <Text
-//             style={[
-//               styles.toggleButtonText,
-//               showofflineLivraisons && styles.activeToggleButtonText,
-//             ]}
-//           >
-//             Livraisons en attente ( {offlineLivraisons?.length} )
-//           </Text>
-//         </TouchableOpacity>
-//       </View>
-
-//       {!showofflineLivraisons && (
-//         <View style={styles.searchContainer}>
-//           <View style={styles.searchBar}>
-//             <MaterialIcons name="search" size={24} color="#757575" />
-//             <TextInput
-//               style={styles.searchInput}
-//               placeholder="Rechercher une commande..."
-//               value={searchQuery}
-//               onChangeText={setSearchQuery}
-//             />
-//             {searchQuery !== "" && (
-//               <TouchableOpacity onPress={() => setSearchQuery("")}>
-//                 <MaterialIcons name="clear" size={20} color="#757575" />
-//               </TouchableOpacity>
-//             )}
-//           </View>
-//         </View>
-//       )}
-
-//       {loading ? (
-//         <View style={styles.loaderContainer}>
-//           <ActivityIndicator size="large" color="#03A9F4" />
-//           <Text style={styles.loaderText}>Chargement des commandes...</Text>
-//         </View>
-//       ) : error ? (
-//         <View style={styles.errorContainer}>
-//           <MaterialIcons name="error-outline" size={48} color="#e53935" />
-//           <Text style={styles.errorText}>Erreur: {error}</Text>
-//           <TouchableOpacity
-//             style={styles.retryButton}
-//             onPress={() =>
-//               dispatch(
-//                 getCommandesApprouves({
-//                   user: userData?.code,
-//                 })
-//               )
-//             }
-//           >
-//             <Text style={styles.retryButtonText}>Réessayer</Text>
-//           </TouchableOpacity>
-//         </View>
-//       ) : showofflineLivraisons ? (
-//         <OfflineLivraisonsScreen client={client} />
-//       ) : filteredCommandes.length === 0 ? (
-//         <View style={styles.emptyContainer}>
-//           <MaterialCommunityIcons
-//             name="truck-delivery"
-//             size={64}
-//             color="#E0E0E0"
-//           />
-//           <Text style={styles.emptyText}>
-//             {searchQuery.trim() !== ""
-//               ? "Aucune commande ne correspond à votre recherche"
-//               : "Aucune commande en attente de livraison"}
-//           </Text>
-//         </View>
-//       ) : (
-//         <FlatList
-//           ref={flatListRef}
-//           data={filteredCommandes.filter((order) => order.isModified === false)}
-//           renderItem={renderCommandeItem}
-//           keyExtractor={(item) => `${item.cmd}-${item.client}`}
-//           contentContainerStyle={styles.commandesList}
-//           onScroll={handleScroll} // Ajoutez cette ligne
-//           scrollEventThrottle={16} // Ajoutez cette ligne
-//           refreshControl={
-//             <RefreshControl
-//               refreshing={loading}
-//               onRefresh={handleRefresh}
-//               colors={["#03A9F4", "#FFC107", "#4CAF50"]}
-//             />
-//           }
-//         />
-//       )}
-//       {!showofflineLivraisons && showScrollToTop && (
-//         <TouchableOpacity
-//           style={styles.floatingButton}
-//           onPress={scrollToTop}
-//           activeOpacity={0.8}
-//         >
-//           <MaterialIcons name="keyboard-arrow-up" size={28} color="white" />
-//         </TouchableOpacity>
-//       )}
-//     </SafeAreaView>
-//   );
-// };
-
 const LivraisonScreen = ({ route }) => {
   const navigation = useNavigation();
   const { client, offlineList } = route.params;
@@ -556,19 +62,19 @@ const LivraisonScreen = ({ route }) => {
     errorOrdersApprouve: error,
   } = useSelector((state) => state.orders);
   const { isConnected, isServerReachable, offlineLivraisons } = useSelector(
-    (state) => state.offline
+    (state) => state.offline,
   );
   console.log(
     "orders dans livraison screeeeeeeeeen and offlineLivraison",
     ordersApprouve,
-    offlineLivraisons
+    offlineLivraisons,
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [commandesDistinctes, setCommandesDistinctes] = useState([]);
   const [selectedCommande, setSelectedCommande] = useState(null);
   const [articlesCommande, setArticlesCommande] = useState([]);
   const [showofflineLivraisons, setShowofflineLivraisons] = useState(
-    offlineList ? true : false
+    offlineList ? true : false,
   );
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -585,7 +91,7 @@ const LivraisonScreen = ({ route }) => {
         const offsetY = event.nativeEvent.contentOffset.y;
         setShowScrollToTop(offsetY > 200);
       },
-    }
+    },
   );
 
   const scrollToTop = () => {
@@ -613,7 +119,7 @@ const LivraisonScreen = ({ route }) => {
 
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      handleBackPress
+      handleBackPress,
     );
     return () => backHandler.remove();
   }, [navigation]);
@@ -624,7 +130,7 @@ const LivraisonScreen = ({ route }) => {
       dispatch(
         getCommandesApprouves({
           user: userData?.code,
-        })
+        }),
       );
     }
   }, [dispatch, client]);
@@ -633,7 +139,7 @@ const LivraisonScreen = ({ route }) => {
     useCallback(() => {
       dispatch(loadOfflineLivraisons(client));
       dispatch(fetchPendingActionsCount());
-    }, [navigation, offlineLivraisons.length, dispatch])
+    }, [navigation, offlineLivraisons.length, dispatch]),
   );
 
   // Fonction pour convertir une date SAP au format jj mmmm aaaa
@@ -683,7 +189,7 @@ const LivraisonScreen = ({ route }) => {
               (c) =>
                 c.cmd === item.cmd &&
                 c.commercial === item.commercial &&
-                c.client === item.client
+                c.client === item.client,
             ).length;
 
             commandesMap.set(key, {
@@ -704,7 +210,7 @@ const LivraisonScreen = ({ route }) => {
 
       return Array.from(commandesMap.values());
     },
-    [client?.kunnr, client?.name1]
+    [client?.kunnr, client?.name1],
   );
 
   // Fonction pour charger les articles d'une commande
@@ -717,7 +223,7 @@ const LivraisonScreen = ({ route }) => {
           (item) =>
             item.cmd === numeroCommande &&
             item.commercial === commercial &&
-            item.client === clientCode
+            item.client === clientCode,
         )
         .map((item) => ({
           matnr: item.matnr,
@@ -730,7 +236,7 @@ const LivraisonScreen = ({ route }) => {
           designation: item.maktx || `Article ${item.matnr}`,
         }));
     },
-    [ordersApprouve]
+    [ordersApprouve],
   );
 
   // Mise à jour des commandes distinctes quand les données changent
@@ -753,7 +259,7 @@ const LivraisonScreen = ({ route }) => {
           commande.cmd.toLowerCase().includes(searchLower) ||
           commande.client.toLowerCase().includes(searchLower) ||
           (commande.clientName &&
-            commande.clientName.toLowerCase().includes(searchLower))
+            commande.clientName.toLowerCase().includes(searchLower)),
       );
     }
 
@@ -766,7 +272,7 @@ const LivraisonScreen = ({ route }) => {
     const articles = chargerArticlesCommande(
       commande.cmd,
       commande.commercial,
-      commande.client
+      commande.client,
     );
     setArticlesCommande(articles);
     commandeDetailModalizeRef.current?.open();
@@ -821,8 +327,8 @@ const LivraisonScreen = ({ route }) => {
                 item.status === "initial"
                   ? "#3B82F620"
                   : item.status === "encours"
-                  ? "#10B98120"
-                  : "#8B5CF620",
+                    ? "#10B98120"
+                    : "#8B5CF620",
             },
           ]}
         >
@@ -834,8 +340,8 @@ const LivraisonScreen = ({ route }) => {
                   item.status === "initial"
                     ? "#3B82F6"
                     : item.status === "encours"
-                    ? "#10B981"
-                    : "#8B5CF6",
+                      ? "#10B981"
+                      : "#8B5CF6",
               },
             ]}
           />
@@ -847,8 +353,8 @@ const LivraisonScreen = ({ route }) => {
                   item.status === "initial"
                     ? "#3B82F6"
                     : item.status === "encours"
-                    ? "#10B981"
-                    : "#8B5CF6",
+                      ? "#10B981"
+                      : "#8B5CF6",
               },
             ]}
           >
@@ -883,7 +389,7 @@ const LivraisonScreen = ({ route }) => {
       dispatch(
         getCommandesApprouves({
           user: userData?.code,
-        })
+        }),
       );
     }
   };
@@ -969,7 +475,7 @@ const LivraisonScreen = ({ route }) => {
               dispatch(
                 getCommandesApprouves({
                   user: userData?.code,
-                })
+                }),
               )
             }
           >

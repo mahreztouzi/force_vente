@@ -42,14 +42,13 @@ import { useDispatch, useSelector } from "react-redux";
 import ClientDetails from "../screens/ClientDetails";
 import CommandeScreen from "../screens/CommandeScreen";
 import * as SecureStore from "expo-secure-store";
-import LivraisonScreen from "../screens/LivraisonScreen";
-import { CreateLivraisonScreen } from "../screens/CreateLivraisonScreen";
+import LivraisonScreen from "../screens/newTheme/livraison/LivraisonScreen";
 import BillingScreen from "../screens/BillingScreen";
 import ReceptionListScreen from "../screens/ReceptionListScreen";
 import CreateReceptionScreen from "../screens/CreateReceptionScreen";
 import StockScreen from "../screens/StockScreen";
 import { DocumentViewerScreen } from "../screens/DocumentViewerScreen";
-import EncaissementScreen from "../screens/EncaissementScreen";
+import EncaissementScreen from "../screens/newTheme/encaissement/EncaissementScreen";
 import CommandeListesScreen from "../screens/CommandeListesScreen";
 import OfflineOrdersScreen from "../screens/OfflineOrdersScreen";
 import EditOfflineOrderScreen from "../screens/EditOfflineOrderScreen";
@@ -58,7 +57,7 @@ import OfflineLivraisonsScreen from "../screens/OfflineLivraisonsScreen";
 import EditOfflineLivraisonScreen from "../screens/EditOfflineLivraisonScreen";
 import { PDFViewerScreen } from "../screens/PDFViewerScreen";
 import HeaderRightButton from "../components/HeaderRightButton";
-import LivraisonsAllListScreen from "../screens/LivraisonsListAllScreen";
+// import LivraisonsAllListScreen from "../screens/newTheme/livraison/LivraisonsListAllScreen";
 import BrouillonScreen from "../screens/BrouillonScreen";
 import DraftCommandeScreen from "../screens/DraftCommandeScreen";
 import CreateQuotationScreen from "../screens/CreateQutationScreen";
@@ -76,6 +75,9 @@ import ClientDetailsScreen from "../screens/newTheme/ClientDetailsScreen";
 import AppDrawerWrapper from "./AppDrawerWrapper";
 import QuotationScreen from "../screens/newTheme/commande/QuotationScreen";
 import OrderReturnScreen from "../screens/newTheme/commande/OrderReturnScreen";
+import CreateLivraisonScreen from "../screens/newTheme/livraison/Createlivraisonscreen";
+import LivraisonsAllListScreen from "../screens/newTheme/livraison/LivraisonsAllListScreen";
+import QuotationListScreen from "../screens/newTheme/commande/Quotationlistscreen";
 
 // Ajoutez ce composant CustomDrawerContent dans le même fichier
 const CustomDrawerContent = (props) => {
@@ -443,26 +445,26 @@ function RootNavigator() {
 
         <Stack.Screen
           name="quotation_liste"
-          component={QuotationListesScreen}
-          options={{
-            ...headerScreenOptions,
-            headerTitle: () => (
-              <Text
-                style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-              >
-                Listes des offres
-              </Text>
-            ),
-            headerLeft: () => (
-              <MaterialCommunityIcons
-                name="arrow-left-circle"
-                size={30}
-                color="white"
-                style={{ marginLeft: 15 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
-          }}
+          component={QuotationListScreen}
+          // options={{
+          //   ...headerScreenOptions,
+          //   headerTitle: () => (
+          //     <Text
+          //       style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
+          //     >
+          //       Listes des offres
+          //     </Text>
+          //   ),
+          //   headerLeft: () => (
+          //     <MaterialCommunityIcons
+          //       name="arrow-left-circle"
+          //       size={30}
+          //       color="white"
+          //       style={{ marginLeft: 15 }}
+          //       onPress={() => navigation.goBack()}
+          //     />
+          //   ),
+          // }}
           listeners={{
             focus: () => setCurrentRoute("quotation_liste"),
           }}
@@ -547,23 +549,25 @@ function RootNavigator() {
 
         <Stack.Screen
           name="livraison"
+          // component={LivraisonScreen}
           component={LivraisonScreen}
           options={({ navigation }) => ({
-            ...headerScreenOptions,
-            headerTitle: () => (
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>
-                Choisissez une commande à livrer
-              </Text>
-            ),
-            headerLeft: () => (
-              <MaterialCommunityIcons
-                name="arrow-left-circle"
-                size={30}
-                color="white"
-                style={{ marginLeft: 15 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
+            // ...headerScreenOptions,
+            headerShown: false,
+            // headerTitle: () => (
+            //   <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>
+            //     Choisissez une commande à livrer
+            //   </Text>
+            // ),
+            // headerLeft: () => (
+            //   <MaterialCommunityIcons
+            //     name="arrow-left-circle"
+            //     size={30}
+            //     color="white"
+            //     style={{ marginLeft: 15 }}
+            //     onPress={() => navigation.goBack()}
+            //   />
+            // ),
           })}
           listeners={{
             focus: () => setCurrentRoute("livraison"),
@@ -573,18 +577,18 @@ function RootNavigator() {
         <Stack.Screen
           name="allOutbounds"
           component={LivraisonsAllListScreen}
-          options={({ navigation }) => ({
-            ...headerScreenOptions,
-            headerLeft: () => (
-              <MaterialCommunityIcons
-                name="arrow-left-circle"
-                size={30}
-                color="white"
-                style={{ marginLeft: 15 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
-          })}
+          // options={({ navigation }) => ({
+          //   ...headerScreenOptions,
+          //   headerLeft: () => (
+          //     <MaterialCommunityIcons
+          //       name="arrow-left-circle"
+          //       size={30}
+          //       color="white"
+          //       style={{ marginLeft: 15 }}
+          //       onPress={() => navigation.goBack()}
+          //     />
+          //   ),
+          // })}
           listeners={{
             focus: () => setCurrentRoute("allOutbounds"),
           }}
@@ -716,23 +720,23 @@ function RootNavigator() {
         <Stack.Screen
           name="encaissement"
           component={EncaissementScreen}
-          options={{
-            ...headerScreenOptions,
-            headerTitle: () => (
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>
-                Encaissement
-              </Text>
-            ),
-            headerLeft: () => (
-              <MaterialCommunityIcons
-                name="arrow-left-circle"
-                size={30}
-                color="white"
-                style={{ marginLeft: 15 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
-          }}
+          // options={{
+          //   ...headerScreenOptions,
+          //   headerTitle: () => (
+          //     <Text style={{ color: "white", fontSize: 16, fontWeight: "500" }}>
+          //       Encaissement
+          //     </Text>
+          //   ),
+          //   headerLeft: () => (
+          //     <MaterialCommunityIcons
+          //       name="arrow-left-circle"
+          //       size={30}
+          //       color="white"
+          //       style={{ marginLeft: 15 }}
+          //       onPress={() => navigation.goBack()}
+          //     />
+          //   ),
+          // }}
           listeners={{
             focus: () => setCurrentRoute("encaissement"),
           }}

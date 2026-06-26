@@ -499,3 +499,487 @@ export const generateA4InvoicePDF = (deliveryData) => {
     </html>
   `;
 };
+
+// utils/pdf/pdfThermalGenerator.js
+export const generateThermalPDFContent = (
+  deliveryData,
+  livraisonItems = [],
+  userData = {},
+  order = {},
+  client = {},
+) => {
+  const currentDate = new Date().toLocaleDateString("fr-FR");
+  const currentTime = new Date().toLocaleTimeString("fr-FR");
+
+  // Calculer les totaux à partir des articles à livrer
+  const articlesALivrer = livraisonItems.filter((item) => item.qteALivrer > 0);
+
+  const totalItems = articlesALivrer.length;
+  const totalQuantity = articlesALivrer.reduce(
+    (sum, item) => sum + item.qteALivrer,
+    0,
+  );
+  const totalPrice = articlesALivrer.reduce(
+    (sum, item) => sum + item.qteALivrer * (item.kbetr || 0),
+    0,
+  );
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Bon de Livraison</title>
+      <style>
+        @page {
+          size: 80mm auto;
+          margin: 2mm;
+        }
+        
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Courier New', monospace;
+          font-size: 20px;
+          line-height: 1.2;
+          width: 76mm;
+          color: #000;
+          background: white;
+        }
+        
+        .receipt-container {
+          width: 100%;
+          padding: 2mm;
+        }
+        
+        .header {
+          text-align: center;
+          border-bottom: 1px dashed #000;
+          padding-bottom: 3mm;
+          margin-bottom: 3mm;
+        }
+        
+        .company-name {
+          font-size: 20px;
+          font-weight: bold;
+          margin-bottom: 1mm;
+        }
+        
+        .document-title {
+          font-size: 20px;
+          font-weight: bold;
+          margin: 2mm 0;
+          text-transform: uppercase;
+        }
+        
+        .delivery-number {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 1mm;
+        }
+        
+        .info-section {
+          margin: 3mm 0;
+          font-size: 16px;
+        }
+        
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1mm;
+          align-items: flex-start;
+        }
+        
+        .info-label {
+          font-weight: bold;
+          min-width: 25mm;
+          font-size: 16px;
+        }
+        
+        .info-value {
+          text-align: right;
+          flex: 1;
+          word-wrap: break-word;
+          font-size: 16px;
+        }
+        
+        .separator {
+          border-top: 1px dashed #000;
+          margin: 3mm 0;
+        }
+        
+        .items-header {
+          font-weight: bold;
+          border-bottom: 1px solid #000;
+          padding: 1mm 0;
+          margin-bottom: 2mm;
+          font-size: 14px;
+        }
+        
+        .item-row {
+          margin-bottom: 2mm;
+          padding-bottom: 2mm;
+          font-size: 12px;
+          font-weight: bold;
+        }
+        
+        .item-code {
+          font-weight: bold;
+          margin-bottom: 0.5mm;
+          font-size: 12px;
+        }
+        
+        .item-desc {
+          margin-bottom: 1mm;
+          word-wrap: break-word;
+          font-size: 12px;
+        }
+        
+        .details-container {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          margin-top: 1mm;
+        }
+        
+        .separator-article {
+          border-top: 1px dashed #000;
+          margin-bottom: 1mm;
+        }
+        
+        .separator-details {
+          border-top: 1px solid #000;
+          margin-bottom: 1mm;
+          width: 65%;
+        }
+        
+        .item-details {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 10px;
+          font-weight: bold;
+          color: black;
+          margin-bottom: 0.5mm;
+          width: 65%;
+        }
+        
+        .item-lot {
+          color: black;
+          font-style: italic;
+          margin-bottom: 0.5mm;
+        }
+        
+        .quantity-box {
+          text-align: left;
+          font-weight: bold;
+          font-size: 10px;
+        }
+        
+        .quantity-box-val {
+          text-align: right;
+          font-weight: bold;
+          font-size: 10px;
+        }
+        
+        .totals {
+          border-top: 1px solid #000;
+          padding-top: 2mm;
+          margin-top: 3mm;
+        }
+        
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1mm;
+          font-weight: bold;
+          font-size: 16px;
+          color: black;
+        }
+        
+        .footer {
+          text-align: center;
+          margin-top: 5mm;
+          padding-top: 3mm;
+          border-top: 1px dashed #000;
+          font-size: 22px;
+        }
+        
+        @media print {
+          body { 
+            -webkit-print-color-adjust: exact;
+            color-adjust: exact;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="receipt-container">
+        <div class="header">
+          <div class="document-title">Bon de Facture</div>
+          <div class="delivery-number">N° ${deliveryData?.numero || "XXXXXXXX"}</div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-row">
+            <span class="info-label">Date:</span>
+            <span class="info-value">${currentDate}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Heure:</span>
+            <span class="info-value">${currentTime}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Client:</span>
+            <span class="info-value">${order?.client || "N/A"}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nom:</span>
+            <span class="info-value">${client?.name1 || "N/A"}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Livreur:</span>
+            <span class="info-value">${userData?.magasin || "N/A"}</span>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="items-header">ARTICLES LIVRES</div>
+        
+        ${articlesALivrer
+          .map(
+            (item, index) => `
+            <div class="item-row">
+              ${index !== 0 ? '<div class="separator-article"></div>' : ""}
+              <div class="item-code">${item.id}</div>
+              <div class="item-desc">${item.designation}</div>
+              <div class="details-container">
+                <div class="separator-details"></div>
+                <div class="item-details">
+                  <span class="quantity-box">Qté livrée :</span>
+                  <span class="quantity-box-val">${item.qteALivrer} ${item.unite}</span>
+                </div>
+                <div class="item-details">
+                  <span class="quantity-box">Prix unitaire :</span>
+                  <span class="quantity-box-val">${(item.kbetr || 0).toFixed(2)} DA</span>
+                </div>
+              </div>
+            </div>
+          `,
+          )
+          .join("")}
+
+        <div class="totals">
+          <div class="total-row">
+            <span>Total :</span>
+            <span>${totalPrice.toFixed(2)} DA</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>Merci pour votre confiance</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Génère le contenu HTML d'un reçu d'encaissement au format thermique (80mm).
+ * Fonction pure : ne dépend d'aucun state React, prend toutes ses données en paramètre.
+ *
+ * @param {object} encaissementData - { Id, Client, clientName, DateEncaissement, ModePaiement, Reference, Montant }
+ * @param {object} userData - { magasin, code }
+ */
+export const generateEncaissementThermalPDFContent = (
+  encaissementData,
+  userData,
+) => {
+  const currentDate = new Date().toLocaleDateString("fr-FR");
+  const currentTime = new Date().toLocaleTimeString("fr-FR");
+
+  const formatEncaissementDate = (dateSAP) => {
+    if (!dateSAP) return currentDate;
+    try {
+      if (!dateSAP.includes("/Date(")) {
+        return new Date(dateSAP).toLocaleDateString("fr-FR");
+      }
+      const timestampMatch = dateSAP.match(/\/Date\((\d+)\)\//);
+      if (timestampMatch && timestampMatch.length >= 2) {
+        return new Date(parseInt(timestampMatch[1])).toLocaleDateString(
+          "fr-FR",
+        );
+      }
+    } catch (error) {
+      console.error("Erreur format date:", error);
+    }
+    return currentDate;
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reçu d'Encaissement</title>
+      <style>
+        @page { size: 80mm auto; margin: 2mm; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Courier New', monospace;
+          font-size: 18px;
+          line-height: 1.2;
+          width: 76mm;
+          color: #000;
+          background: white;
+        }
+        .receipt-container { width: 100%; padding: 2mm; }
+        .header {
+          text-align: center;
+          border-bottom: 1px dashed #000;
+          padding-bottom: 3mm;
+          margin-bottom: 3mm;
+        }
+        .document-title {
+          font-size: 20px;
+          font-weight: bold;
+          margin: 2mm 0;
+          text-transform: uppercase;
+        }
+        .encaissement-number {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 1mm;
+        }
+        .info-section { margin: 3mm 0; font-size: 16px; }
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1mm;
+          align-items: flex-end;
+        }
+        .info-label { font-weight: bold; min-width: 25mm; font-size: 16px; }
+        .info-value { text-align: right; flex: 1; word-wrap: break-word; font-size: 16px; }
+        .separator { border-top: 1px dashed #000; margin: 3mm 0; }
+        .payment-section {
+          margin: 3mm 0;
+          padding: 2mm 0;
+          border-top: 1px solid #000;
+          border-bottom: 1px solid #000;
+        }
+        .payment-title {
+          font-weight: bold;
+          text-align: center;
+          font-size: 18px;
+          margin-bottom: 2mm;
+          text-transform: uppercase;
+        }
+        .payment-details { margin: 2mm 0; }
+        .payment-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 1mm;
+          font-size: 16px;
+        }
+        .payment-label { font-weight: bold; }
+        .payment-value { font-weight: bold; text-align: right; }
+        .amount-section {
+          text-align: center;
+          margin: 3mm 0;
+          padding: 2mm;
+          border: 2px solid #000;
+        }
+        .amount-label { font-size: 16px; margin-bottom: 1mm; }
+        .amount-value { font-size: 24px; font-weight: bold; color: #000; }
+        .footer {
+          text-align: center;
+          margin-top: 5mm;
+          padding-top: 3mm;
+          border-top: 1px dashed #000;
+          font-size: 16px;
+        }
+        @media print {
+          body { -webkit-print-color-adjust: exact; color-adjust: exact; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="receipt-container">
+        <div class="header">
+          <div class="document-title">Reçu d'Encaissement</div>
+          <div class="encaissement-number">N° ${encaissementData.Id}</div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-row">
+            <span class="info-label">Date:</span>
+            <span class="info-value">${currentDate}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Heure:</span>
+            <span class="info-value">${currentTime}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Client:</span>
+            <span class="info-value">${encaissementData.Client || "N/A"}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nom:</span>
+            <span class="info-value">${encaissementData.clientName || "N/A"}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Commercial:</span>
+            <span class="info-value">${userData?.magasin || "N/A"}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Date Encaissement:</span>
+            <span class="info-value">${formatEncaissementDate(encaissementData.DateEncaissement)}</span>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="payment-section">
+          <div class="payment-title">Détails du Paiement</div>
+          <div class="payment-details">
+            <div class="payment-row">
+              <span class="payment-label">Mode de paiement:</span>
+              <span class="payment-value">${encaissementData.ModePaiement || "ESPECE"}</span>
+            </div>
+            ${
+              encaissementData.Reference
+                ? `<div class="payment-row">
+                    <span class="payment-label">Référence:</span>
+                    <span class="payment-value">${encaissementData.Reference}</span>
+                  </div>`
+                : ""
+            }
+          </div>
+        </div>
+
+        <div class="amount-section">
+          <div class="amount-label">Montant Encaissé</div>
+          <div class="amount-value">${parseFloat(
+            encaissementData.Montant || 0,
+          ).toLocaleString("fr-DZ", {
+            style: "currency",
+            currency: "DZD",
+          })}</div>
+        </div>
+
+        <div class="footer">
+          <div>Merci pour votre confiance</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};

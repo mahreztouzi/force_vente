@@ -60,7 +60,7 @@ const EncaissementScreen = ({ route }) => {
     deleteError,
   } = useSelector((state) => state.encaissement);
   const { isConnected, isServerReachable, offlineEncaissements } = useSelector(
-    (state) => state.offline
+    (state) => state.offline,
   );
 
   const [selectedEncaissement, setSelectedEncaissement] = useState(null);
@@ -68,7 +68,7 @@ const EncaissementScreen = ({ route }) => {
   const [dateValue, setDateValue] = useState(new Date());
   const [displayMontant, setDisplayMontant] = useState("");
   const [showOfflineEncaissements, setShowOfflineEncaissements] = useState(
-    offlineList ? true : false
+    offlineList ? true : false,
   );
 
   // État pour le formulaire
@@ -97,7 +97,7 @@ const EncaissementScreen = ({ route }) => {
     useCallback(() => {
       dispatch(loadOfflineEncaissements(client.kunnr));
       dispatch(fetchPendingActionsCount()); // Recharger la liste
-    }, [])
+    }, []),
   );
   useEffect(() => {
     dispatch(loadOfflineEncaissements(client.kunnr));
@@ -111,7 +111,7 @@ const EncaissementScreen = ({ route }) => {
 
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      handleBackPress
+      handleBackPress,
     );
     return () => backHandler.remove();
   }, [navigation]);
@@ -137,7 +137,7 @@ const EncaissementScreen = ({ route }) => {
         getEncaissment({
           // client: client,
           commercial: user,
-        })
+        }),
       );
     }
   };
@@ -157,7 +157,7 @@ const EncaissementScreen = ({ route }) => {
       const [integerPart, decimalPart] = parts;
       const formattedInteger = integerPart.replace(
         /\B(?=(\d{3})+(?!\d))/g,
-        " "
+        " ",
       );
       return decimalPart !== undefined
         ? `${formattedInteger}.${decimalPart.slice(0, 2)}`
@@ -378,7 +378,7 @@ const EncaissementScreen = ({ route }) => {
                   client: selectedEncaissement.Client,
                   commercial: selectedEncaissement.Commercial,
                   numLigne: selectedEncaissement.NumLigne,
-                })
+                }),
               )
                 .unwrap()
                 .then(() => {
@@ -388,7 +388,7 @@ const EncaissementScreen = ({ route }) => {
                 .catch((err) => {
                   Alert.alert(
                     "Erreur",
-                    err.message || "Erreur lors de la suppression"
+                    err.message || "Erreur lors de la suppression",
                   );
                 });
             } else {
@@ -396,7 +396,7 @@ const EncaissementScreen = ({ route }) => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -441,7 +441,7 @@ const EncaissementScreen = ({ route }) => {
           "Succès",
           formMode === "create"
             ? "Encaissement créé avec succès"
-            : "Encaissement modifié avec succès"
+            : "Encaissement modifié avec succès",
         );
       })
       .catch((err) => {
@@ -450,7 +450,7 @@ const EncaissementScreen = ({ route }) => {
           err.message ||
             (formMode === "create"
               ? "Erreur lors de la création"
-              : "Erreur lors de la modification")
+              : "Erreur lors de la modification"),
         );
       })
       .finally(() => {
@@ -488,7 +488,7 @@ const EncaissementScreen = ({ route }) => {
           err.message ||
             (formMode === "create"
               ? "Erreur lors de la création"
-              : "Erreur lors de la modification")
+              : "Erreur lors de la modification"),
         );
       })
       .finally(() => {
@@ -993,7 +993,7 @@ const EncaissementScreen = ({ route }) => {
           <div class="info-row">
             <span class="info-label">Date Encaissement:</span>
             <span class="info-value">${formatEncaissementDate(
-              encaissementData.DateEncaissement
+              encaissementData.DateEncaissement,
             )}</span>
           </div>
         </div>
@@ -1029,7 +1029,7 @@ const EncaissementScreen = ({ route }) => {
         <div class="amount-section">
           <div class="amount-label">Montant Encaissé</div>
           <div class="amount-value">${parseFloat(
-            encaissementData.Montant || 0
+            encaissementData.Montant || 0,
           ).toLocaleString("fr-DZ", {
             style: "currency",
             currency: "DZD",
@@ -1052,67 +1052,17 @@ const EncaissementScreen = ({ route }) => {
   `;
   };
 
-  // 2. Fonction pour gérer l'impression d'un encaissement
-  // const handlePrintEncaissement = async (
-  //   encaissement,
-  //   clientData,
-  //   userData,
-  //   navigation
-  // ) => {
-  //   try {
-  //     console.log(
-  //       "Préparation de l'impression de l'encaissement...",
-  //       encaissement
-  //     );
-
-  //     // Préparer les données pour le PDF
-  //     const encaissementData = {
-  //       ...encaissement,
-  //       clientName: clientData?.name1,
-  //       commercialName: userData?.code,
-  //     };
-
-  //     console.log("encaissment data dans print function", encaissementData);
-
-  //     // Générer le contenu HTML
-  //     const htmlContent =
-  //       generateEncaissementThermalPDFContent(encaissementData);
-
-  //     // Naviguer vers l'écran PDF avec les données nécessaires
-  //     navigation.navigate("PDFViewerScreen", {
-  //       htmlContent: htmlContent,
-  //       encaissementId: encaissement.Id,
-  //       encaissementData: encaissementData,
-  //       clientData: clientData,
-  //       userData: userData,
-  //       documentType: "encaissement", // Pour différencier des autres types de documents
-  //       orderData: {
-  //         cmd: "",
-  //         client: clientData.kunnr,
-  //         clientName: clientData.name1,
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.error("Erreur lors de la préparation de l'impression:", error);
-  //     Alert.alert(
-  //       "Erreur",
-  //       "Impossible de préparer le document pour l'impression. Veuillez réessayer.",
-  //       [{ text: "OK" }]
-  //     );
-  //   }
-  // };
-
   const handlePrintEncaissement = async (
     encaissement,
     clientData,
     userData,
-    navigation
+    navigation,
   ) => {
     try {
       console.log(
         "Préparation de l'impression de l'encaissement...",
         encaissement,
-        clientData
+        clientData,
       );
 
       // Créer l'objet transformedData selon le format demandé
@@ -1168,7 +1118,7 @@ const EncaissementScreen = ({ route }) => {
       Alert.alert(
         "Erreur",
         "Impossible de préparer le document pour l'impression. Veuillez réessayer.",
-        [{ text: "OK" }]
+        [{ text: "OK" }],
       );
     }
   };
@@ -1296,7 +1246,7 @@ const EncaissementScreen = ({ route }) => {
                         item,
                         client,
                         userData,
-                        navigation
+                        navigation,
                       )
                     }
                     // disabled={item.isOffline}
@@ -1364,7 +1314,7 @@ const EncaissementScreen = ({ route }) => {
                 selectedEncaissement,
                 client,
                 userData,
-                navigation
+                navigation,
               );
             }}
           >

@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     height: scale(5),
   },
   content: {
-    paddingBottom: Spacing.xxxl,
+    paddingBottom: 80,
   },
 
   // Image en haut, pleine largeur, coins arrondis seulement en haut (suit la modal)

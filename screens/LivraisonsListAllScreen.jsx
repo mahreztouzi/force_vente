@@ -847,35 +847,6 @@ const LivraisonsAllListScreen = ({ route }) => {
       `;
   };
 
-  // const handlePrintLivraison = async (livraison) => {
-  //   try {
-  //     const htmlContent = generateThermalPDFContent(livraison);
-  //     livraisonDetailModalizeRef.current?.close();
-  //     console.log("livraison dans list all livraison", livraison);
-  //     navigation.navigate("PDFViewerScreen", {
-  //       htmlContent: htmlContent,
-  //       deliveryId: livraison.num_doc,
-  //       documentType: "livraison",
-  //       orderData: {
-  //         cmd: livraison.num_cmd,
-  //         client: livraison.client,
-  //         clientName: livraison.clientName || "N/A",
-  //       },
-  //       deliveryItems: livraison.articles,
-  //       userData: userData,
-  //       livraisonData: livraison,
-  //       clientData: client,
-  //     });
-  //   } catch (error) {
-  //     console.error("Erreur lors de la préparation de l'impression:", error);
-  //     Alert.alert(
-  //       "Erreur d'impression",
-  //       "Impossible de préparer le document pour l'impression. Veuillez réessayer.",
-  //       [{ text: "OK" }]
-  //     );
-  //   }
-  // };
-
   const handlePrintLivraison = async (livraison) => {
     try {
       // Transformation des données de livraison au format requis

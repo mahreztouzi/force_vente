@@ -39,7 +39,10 @@ import {
 } from "../redux/slices/processDeliverySlice";
 import { loadOfflineLivraisons } from "../redux/slices/offlineSlice";
 import { wp, hp, fs, fontWeight, scale } from "../utils/responsive";
-import { generateA4InvoicePDF } from "../utils/pdf/pdfGenerators";
+import {
+  generateA4InvoicePDF,
+  generateThermalPDFContent,
+} from "../utils/pdf/pdfGenerators";
 
 export const CreateLivraisonScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -79,31 +82,6 @@ export const CreateLivraisonScreen = ({ route }) => {
   // État pour suivre la dernière livraison créée
   const [createdDeliveryId, setCreatedDeliveryId] = useState(null);
   // retour en arriere
-  // useEffect(() => {
-  //   const handleBackPress = async () => {
-  //     if (showProcessModal) {
-  //       return true; // Bloque la navigation si la modal est ouverte
-  //     }
-  //     if (quantityModalizeRef.current?.isOpen) {
-  //       quantityModalizeRef.current?.close();
-  //       return true;
-  //     }
-  //     if (printModalizeRef.current?.isOpen) {
-  //       printModalizeRef.current?.close();
-  //       return true;
-  //     }
-
-  //     await dispatch(resetoutboundstate());
-  //     navigation.goBack();
-  //     return true;
-  //   };
-
-  //   const backHandler = BackHandler.addEventListener(
-  //     "hardwareBackPress",
-  //     handleBackPress
-  //   );
-  //   return () => backHandler.remove();
-  // }, [navigation, showProcessModal]);
   useEffect(() => {
     const handleBackPress = async () => {
       // Si le processus est en cours, BLOQUER complètement
@@ -180,52 +158,10 @@ export const CreateLivraisonScreen = ({ route }) => {
 
   // verifié si les dates ouvrantes sont autorisé transaction mmpv / ob52
   useEffect(() => {
-    // dispatch(
-    //   getAutorisedDate({
-    //     bukrs: order.codeSociete,
-    //   })
-    // );
     dispatch(resetoutboundstate());
     dispatch(resetDeliveryProcess());
   }, [dispatch, order.codeSociete]);
 
-  // useEffect(() => {
-  //   if (dateAutorise.length != 0) {
-  //     try {
-  //       const currentDate = new Date();
-  //       const currentMonth = currentDate.getMonth() + 1;
-  //       const currentYear = currentDate.getFullYear().toString();
-
-  //       // Convertir les mois autorisés en nombres pour la comparaison
-  //       const mois1Num = parseInt(dateAutorise.mois1, 10);
-  //       const mois2Num = parseInt(dateAutorise.mois2, 10);
-  //       const mois3Num = parseInt(dateAutorise.mois3, 10);
-  //       const lfmonNum = parseInt(dateAutorise.lfmon, 10);
-
-  //       // Vérifier si tout les mois autorisés sont valide pour le mois actuel
-  //       const isMonthValid =
-  //         mois1Num >= currentMonth &&
-  //         dateAutorise.annee1 === currentYear &&
-  //         mois2Num >= currentMonth &&
-  //         dateAutorise.annee2 === currentYear &&
-  //         mois3Num >= currentMonth &&
-  //         dateAutorise.annee3 === currentYear &&
-  //         lfmonNum >= currentMonth &&
-  //         dateAutorise.lfgja === currentYear;
-
-  //       // Mettre à jour à la fois l'autorisation et le statut de vérification
-  //       setIsDateAuthorized(isMonthValid);
-  //       setIsDateChecked(true);
-  //     } catch (error) {
-  //       console.error("Erreur lors de la vérification des dates:", error);
-  //       // En cas d'erreur, on autorise par défaut
-  //       setIsDateAuthorized(true);
-  //       setIsDateChecked(true);
-  //     }
-  //   }
-  // }, [dateAutorise]);
-
-  // Deuxième useEffect pour traiter les données lorsqu'elles sont disponibles
   useEffect(() => {
     if (stocks && stocks.length > 0) {
       const stockData = {};
@@ -295,10 +231,6 @@ export const CreateLivraisonScreen = ({ route }) => {
     const stockItem = stockInfo[selectedArticle.id];
     const hasLot =
       selectedArticle.charg && stockItem?.lotDetails?.[selectedArticle.charg];
-
-    // Vérifier si le stock existe et si le lot spécifique existe
-    // const lotStock =
-    //   stockItem?.lotDetails[selectedArticle.charg]?.AvailableStockByLot || 0;
     const lotStock = hasLot
       ? stockItem.lotDetails[selectedArticle.charg].AvailableStockByLot || 0
       : stockItem?.AvailableStock || 0;
@@ -633,330 +565,8 @@ export const CreateLivraisonScreen = ({ route }) => {
     );
   };
 
-  const generateThermalPDFContent = (deliveryData) => {
-    const currentDate = new Date().toLocaleDateString("fr-FR");
-    const currentTime = new Date().toLocaleTimeString("fr-FR");
-
-    // Calculer les totaux
-    const totalItems = livraisonItems.filter(
-      (item) => item.qteALivrer > 0,
-    ).length;
-    const totalQuantity = livraisonItems
-      .filter((item) => item.qteALivrer > 0)
-      .reduce((sum, item) => sum + item.qteALivrer, 0);
-    const totalPrice = livraisonItems
-      .filter((item) => item.qteALivrer > 0)
-      .reduce((sum, item) => sum + item.qteALivrer * (item.kbetr || 0), 0);
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bon de Livraison</title>
-        <style>
-          @page {
-            size: 80mm auto;
-            margin: 2mm;
-          }
-          
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          
-          body {
-            font-family: 'Courier New', monospace;
-            font-size: 20px;
-            line-height: 1.2;
-            width: 76mm;
-            color: #000;
-            background: white;
-          }
-          
-          .receipt-container {
-            width: 100%;
-            padding: 2mm;
-          }
-          
-          .header {
-            text-align: center;
-            border-bottom: 1px dashed #000;
-            padding-bottom: 3mm;
-            margin-bottom: 3mm;
-          }
-          
-          .company-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 1mm;
-          }
-          
-          .document-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 2mm 0;
-            text-transform: uppercase;
-          }
-          
-          .delivery-number {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 1mm;
-          }
-          
-          .info-section {
-            margin: 3mm 0;
-            font-size: 16px;
-          }
-          
-          .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1mm;
-            align-items: flex-start;
-          }
-          
-          .info-label {
-            font-weight: bold;
-            min-width: 25mm;
-            font-size: 16px;
-          }
-          
-          .info-value {
-            text-align: right;
-            flex: 1;
-            word-wrap: break-word;
-            font-size: 16px;
-          }
-          
-          .separator {
-            border-top: 1px dashed #000;
-            margin: 3mm 0;
-          }
-          
-          .items-header {
-            font-weight: bold;
-            border-bottom: 1px solid #000;
-            padding: 1mm 0;
-            margin-bottom: 2mm;
-            font-size: 14px;
-          }
-          
-          .item-row {
-            margin-bottom: 2mm;
-            padding-bottom: 2mm;
-            font-size: 12px;
-            font-weight: bold;
-          }
-          
-       
-          
-          .item-code {
-            font-weight: bold;
-            margin-bottom: 0.5mm;
-            font-size: 12px;
-          }
-          
-          .item-desc {
-            margin-bottom: 1mm;
-            word-wrap: break-word;
-            font-size: 12px;
-          }
-          
-          .details-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            margin-top: 1mm;
-          }
-          
-          .separator-article {
-            border-top: 1px dashed #000;
-            margin-bottom: 1mm;
-          }
-          .separator-details {
-            border-top: 1px solid #000;
-            margin-bottom: 1mm;
-            width: 65%;
-          }
-          
-          .item-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 10px;
-            font-weight: bold;
-            color: black;
-            margin-bottom: 0.5mm;
-            width: 65%;
-          }
-          
-          .item-lot {
-            color: black;
-            font-style: italic;
-            margin-bottom: 0.5mm;
-          }
-          
-          .quantity-box {
-            text-align: left;
-            font-weight: bold;
-            font-size: 10px;
-          }
-          
-          .quantity-box-val {
-            text-align: right;
-            font-weight: bold;
-            font-size: 10px;
-            // margin-left: 5mm;
-          }
-          
-          .totals {
-            border-top: 1px solid #000;
-            padding-top: 2mm;
-            margin-top: 3mm;
-          }
-          
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1mm;
-            font-weight: bold;
-            font-size: 16px;
-            color: black;
-          }
-          
-          .footer {
-            text-align: center;
-            margin-top: 5mm;
-            padding-top: 3mm;
-            border-top: 1px dashed #000;
-            font-size: 22px;
-          }
-          
-          .signature-section {
-            margin-top: 5mm;
-            text-align: center;
-          }
-          
-          .signature-line {
-            border-top: 1px solid #000;
-            width: 30mm;
-            margin: 10mm auto 2mm auto;
-          }
-          
-          .signature-label {
-            font-size: 16px;
-            color: #666;
-          }
-          
-          @media print {
-            body { 
-              -webkit-print-color-adjust: exact;
-              color-adjust: exact;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="receipt-container">
-          <!-- En-tête -->
-          <div class="header">
-            <div class="document-title">Bon de Facture</div>
-            <div class="delivery-number">N° ${
-              createdDeliveryId || "XXXXXXXX"
-            }</div>
-          </div>
-  
-          <!-- Informations générales -->
-          <div class="info-section">
-            <div class="info-row">
-              <span class="info-label">Date:</span>
-              <span class="info-value">${currentDate}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Heure:</span>
-              <span class="info-value">${currentTime}</span>
-            </div>
-             <!-- <div class="info-row">
-              <span class="info-label">Commande:</span>
-              <span class="info-value">${order.cmd}</span>
-            </div> -->
-            <div class="info-row">
-              <span class="info-label">Client:</span>
-              <span class="info-value">${order.client}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Nom:</span>
-              <span class="info-value">${client.name1 || "N/A"}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Livreur:</span>
-              <span class="info-value">${userData?.magasin}</span>
-            </div>
-          </div>
-  
-          <div class="separator"></div>
-  
-          <!-- Articles -->
-          <div class="items-header">ARTICLES LIVRES</div>
-          
-          ${livraisonItems
-            .filter((item) => item.qteALivrer > 0)
-            .map(
-              (item, index) => `
-              <div class="item-row">
-            ${index !== 0 ? '<div class="separator-article"></div>' : ""}
-               
-                <div class="item-code">${item.id}</div>
-                <div class="item-desc">${item.designation}</div>
-                <div class="details-container">
-                  <div class="separator-details"></div>
-                  <div class="item-details">
-                    <span class="quantity-box">Qté livrée :</span>
-                    <span class="quantity-box-val">${item.qteALivrer} ${
-                      item.unite
-                    }</span>
-                  </div>
-                  <div class="item-details">
-                    <span class="quantity-box">Prix unitaire :</span>
-                    <span class="quantity-box-val">${(item.kbetr || 0).toFixed(
-                      2,
-                    )} DA</span>
-                  </div>
-                </div>
-              </div>
-            `,
-            )
-            .join("")}
-  
-          <!-- Totaux -->
-          <div class="totals">
-            <div class="total-row">
-              <span>Total :</span>
-              <span>${totalPrice.toFixed(2)} DA</span>
-            </div>
-          </div>
-  
-          <!-- Pied de page -->
-          <div class="footer">
-            <div>Merci pour votre confiance</div>
-             <!--<div style="margin-top: 2mm; font-size: 7px;">
-                 Document généré le ${currentDate} à ${currentTime}
-             </div>-->
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  };
-
   const handlePrintDelivery = async () => {
     try {
-      console.log("Navigation vers l'écran PDF...");
-
       // Filtrer les articles avec quantité > 0
       const articlesLivres = livraisonItems.filter(
         (item) => item.qteALivrer > 0,
@@ -997,10 +607,12 @@ export const CreateLivraisonScreen = ({ route }) => {
         }),
       };
 
-      console.log("Données transformées:", transformedData);
-
       // Générer le contenu HTML avec les données transformées
-      const htmlContent = generateThermalPDFContent();
+      const htmlContent = generateThermalPDFContent(
+        transformedData,
+        livraisonItems,
+        createdDeliveryId,
+      );
       const htmlContentPDFA4 = generateA4InvoicePDF(transformedData);
 
       // Fermer le modal
@@ -1028,7 +640,6 @@ export const CreateLivraisonScreen = ({ route }) => {
         dispatch(resetoutboundstate());
       }, 500);
     } catch (error) {
-      console.error("Erreur lors de la navigation vers PDF:", error);
       Alert.alert(
         "Erreur",
         "Impossible d'ouvrir le document PDF. Veuillez réessayer.",
@@ -1255,10 +866,6 @@ export const CreateLivraisonScreen = ({ route }) => {
                   const hasLot =
                     selectedArticle.charg &&
                     stockItem?.lotDetails?.[selectedArticle.charg];
-
-                  // const stockQuantity = stockItem
-                  //   ? stockItem.AvailableStock
-                  //   : 0;
                   const stockQuantity = hasLot
                     ? stockItem.lotDetails[selectedArticle.charg]
                         .AvailableStockByLot
