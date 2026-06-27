@@ -9,6 +9,7 @@ import {
   ScrollView,
   BackHandler,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Ionicons,
@@ -46,6 +47,7 @@ const splitAmount = (value) => {
 };
 
 const ClientDetailsScreen = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { client } = route.params;
   const dispatch = useDispatch();
   const { favorites } = useSelector((state) => state.clients);
@@ -79,17 +81,17 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   const handleCall = (phoneNumber) => {
     if (phoneNumber) Linking.openURL(`tel:${phoneNumber}`);
-    else alert("Numéro de téléphone non disponible");
+    else alert(t("client.unavailablePhone"));
   };
 
   const handleSMS = (phoneNumber) => {
     if (phoneNumber) Linking.openURL(`sms:${phoneNumber}`);
-    else alert("Numéro de téléphone non disponible");
+    else alert(t("client.unavailablePhone"));
   };
 
   const handleEmail = (email) => {
     if (email) Linking.openURL(`mailto:${email}`);
-    else alert("Adresse e-mail non disponible");
+    else alert(t("client.unavailableEmail"));
   };
 
   const handleMotifSelect = (motif) => {
@@ -101,60 +103,60 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const QUICK_ACTIONS = [
     {
       key: "nouvelle_offre",
-      label: "Nouvelle Offre",
-      subtitle: "Créer une nouvelle offre",
+      label: t("client.newOffer"),
+      subtitle: t("client.newOfferSub"),
       icon: "file-document-edit-outline",
       onPress: () => navigation.navigate("create_offr", { client }),
     },
     {
       key: "commande_retour",
-      label: "Commande Retour",
-      subtitle: "Retourner des articles",
+      label: t("client.returnOrder"),
+      subtitle: t("client.returnOrderSub"),
       icon: "package-variant-closed",
       onPress: () => motifModalizeRef.current?.open(),
     },
     {
       key: "nouvelle_livraison",
-      label: "Nouvelle Livraison",
-      subtitle: "Créer une livraison",
+      label: t("client.newDelivery"),
+      subtitle: t("client.newDeliverySub"),
       icon: "truck-fast-outline",
       onPress: () => navigation.navigate("livraison", { client }),
     },
     {
       key: "nouvel_encaissement",
-      label: "Nouvel Encaissement",
-      subtitle: "Encaisser un paiement",
+      label: t("client.newPayment"),
+      subtitle: t("client.newPaymentSub"),
       icon: "cash-multiple",
       onPress: () => navigation.navigate("encaissement", { client }),
     },
     {
       key: "historique_livraisons",
-      label: "Historique Livraisons",
-      subtitle: "Consulter les livraisons",
+      label: t("client.historyDeliveries"),
+      subtitle: t("client.historyDeliveriesSub"),
       icon: "truck-check-outline",
       onPress: () => navigation.navigate("allOutbounds", { client }),
     },
     {
       key: "historique_offres",
-      label: "Historique des Offres",
-      subtitle: "Consulter les offres",
+      label: t("client.historyOffers"),
+      subtitle: t("client.historyOffersSub"),
       icon: "history",
       onPress: () => navigation.navigate("quotation_liste", { client }),
     },
     {
       key: "historique_commandes",
-      label: "Historique des Commandes",
-      subtitle: "Consulter les commandes",
+      label: t("client.historyOrders"),
+      subtitle: t("client.historyOrdersSub"),
       icon: "history",
       onPress: () => navigation.navigate("all_orders", { client }),
     },
-    {
-      key: "brouillon",
-      label: "Brouillon",
-      subtitle: "Voir les brouillons",
-      icon: "note-text-outline",
-      onPress: () => navigation.navigate("brouillon", { client }),
-    },
+    // {
+    //   key: "brouillon",
+    //   label: "Brouillon",
+    //   subtitle: "Voir les brouillons",
+    //   icon: "note-text-outline",
+    //   onPress: () => navigation.navigate("brouillon", { client }),
+    // },
   ];
 
   const montantSplit = splitAmount(client.solde);
@@ -200,7 +202,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   <View style={styles.actionIconWrap}>
                     <Feather name="phone" size={scale(18)} color={BLUE} />
                   </View>
-                  <Text style={styles.actionLabel}>Appeler</Text>
+                  <Text style={styles.actionLabel}>{t("client.call")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -214,7 +216,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                       color={BLUE}
                     />
                   </View>
-                  <Text style={styles.actionLabel}>Message</Text>
+                  <Text style={styles.actionLabel}>{t("client.message")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -224,7 +226,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   <View style={styles.actionIconWrap}>
                     <MaterialIcons name="email" size={scale(18)} color={BLUE} />
                   </View>
-                  <Text style={styles.actionLabel}>Email</Text>
+                  <Text style={styles.actionLabel}>{t("client.email")}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -238,13 +240,15 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                       color={isFavorite ? "#FE9900" : BLUE}
                     />
                   </View>
-                  <Text style={styles.actionLabel}>Favoris</Text>
+                  <Text style={styles.actionLabel}>
+                    {t("client.favorites")}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               {/* Solde — space-between, montant en grand avec virgule/DA en petit */}
               <View style={styles.soldeRow}>
-                <Text style={styles.soldeLabel}>Solde Client</Text>
+                <Text style={styles.soldeLabel}>{t("client.balance")}</Text>
                 <View style={styles.soldeValueRow}>
                   <Text style={styles.soldeInteger}>
                     {montantSplit.integer}
@@ -265,7 +269,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                   style={{ marginTop: 2 }}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.addressLabel}>Adresse du client:</Text>
+                  <Text style={styles.addressLabel}>
+                    {t("client.address")} :
+                  </Text>
                   <Text style={styles.addressValue}>
                     {client?.Rue || "—"} {client?.CodePostale || ""}
                     {"\n"}
@@ -335,7 +341,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
         <View style={styles.motifModalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
-              Sélectionnez un motif de retour
+              {t("client.selectReturnReason")}
             </Text>
             <TouchableOpacity onPress={() => motifModalizeRef.current?.close()}>
               <MaterialIcons name="close" size={22} color={TEXT_MUTED} />
@@ -353,7 +359,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                 onPress={() => handleMotifSelect(item)}
               >
                 <Text style={styles.motifText}>{item.Bezei}</Text>
-                <Text style={styles.motifCode}>Code: {item.Augru}</Text>
+                <Text style={styles.motifCode}>
+                  {`${t("clients.code")}: ${item.Augru}`}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -523,7 +531,7 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: "33%",
-    height: "26.5%",
+    height: 150,
     minHeight: scale(100),
     backgroundColor: "#fff",
     borderWidth: 1,

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   Text,
@@ -8,32 +14,29 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
-  RefreshControl,
   Animated,
+  RefreshControl,
   BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  MaterialIcons,
-  MaterialCommunityIcons,
-  Ionicons,
-} from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 
+import { getAllCommande } from "../../../redux/slices/orderSlice";
 import {
-  getAllOutbounds,
-  processCreateBill,
-  processValidationAndGoodsIssue,
-} from "../../../redux/slices/outboundSlice";
-import { isConnected } from "../../../utils/offlineUtils";
-import { generateA4InvoicePDF } from "../../../utils/pdf/pdfGenerators";
+  fetchPendingActionsCount,
+  loadOfflineOrders,
+} from "../../../redux/slices/offlineSlice";
+
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
-
 import ScreenBackground from "../../../components/common/ScreenBackground";
+
 import MonthStatusFilter from "../../../components/common/Monthstatusfilter";
-import LivraisonDetailModalize from "../../../components/common/livraison/Livraisondetailmodalize";
+import CommandeVenteCard from "../../../components/common/commande/Commandeventecard";
+import CommandeVenteDetailModalize from "../../../components/common/commande/Commandeventedetailmodalize";
 import StatusListCard from "../../../components/common/StatusListCard";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -58,10 +61,22 @@ const MONTHS = [
 
 const STATUS_OPTIONS = [
   { key: "all", label: "Tous", color: TEXT_MUTED },
-  { key: "initial", label: "En préparation", color: "#FF9800" },
-  { key: "sortie", label: "Expédiée", color: "#2196F3" },
-  { key: "facturé", label: "Facturée", color: "#4CAF50" },
+  { key: "initial", label: "Initial", color: "#3B82F6" },
+  { key: "encours", label: "En cours", color: "#10B981" },
+  { key: "termine", label: "Terminé", color: "#8B5CF6" },
 ];
+
+const STATUT_MAPPING = {
+  initial: "Initial",
+  encours: "En cours",
+  termine: "Terminé",
+};
+
+const STATUS_COLORS = {
+  initial: "#3B82F6",
+  encours: "#10B981",
+  termine: "#8B5CF6",
+};
 
 // ─── Utilitaires ──────────────────────────────────────────────────────────────
 const getMonthDateRange = (year, month) => {
@@ -74,58 +89,49 @@ const getMonthDateRange = (year, month) => {
 };
 
 const convertirDateSAP = (dateSAP) => {
-  const match = dateSAP.match(/\/Date\((\d+)\)\//);
-  if (!match) return "—";
-  return new Date(parseInt(match[1])).toLocaleDateString("fr-FR", {
+  const m = dateSAP.match(/\/Date\((\d+)\)\//);
+  if (!m) return "Date invalide";
+  return new Date(parseInt(m[1])).toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
   });
 };
 
-const getStatusColor = (s) =>
-  STATUS_OPTIONS.find((o) => o.key === s)?.color ?? TEXT_MUTED;
-const getStatusLabel = (s) =>
-  STATUS_OPTIONS.find((o) => o.key === s)?.label ?? s;
-
-const getProcessButtonConfig = (statut) => {
-  switch (statut?.toLowerCase()) {
-    case "initial":
-      return { title: "Expédier", icon: "local-shipping", show: true };
-    case "sortie":
-      return { title: "Facturer", icon: "receipt", show: true };
-    default:
-      return { show: false };
-  }
-};
-
 // ─── Écran ────────────────────────────────────────────────────────────────────
-const LivraisonsAllListScreen = ({ route }) => {
+const CommandeVenteListeScreen = ({ route }) => {
   const navigation = useNavigation();
-  const { client } = route.params;
+  const { client, retour } = route.params;
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
 
   const userData = useSelector((s) => s.auth.user);
+  const { isServerReachable, offlineOrders } = useSelector((s) => s.offline);
   const {
-    allOutbounds: livraisonsList,
-    loading,
-    error,
-  } = useSelector((s) => s.outbounds);
-  const { isServerReachable } = useSelector((s) => s.offline);
+    allOrders: commandesVenteData,
+    allOrdersLoading: loading,
+    allOrdersError: error,
+  } = useSelector((s) => s.orders);
 
+  // Filtres
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [filteredLivraisons, setFilteredLivraisons] = useState([]);
-  const [selectedLivraison, setSelectedLivraison] = useState(null);
-  const [articlesLivraison, setArticlesLivraison] = useState([]);
-  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Toggle vente / retour
+  const [showRetours, setShowRetours] = useState(retour ? true : false);
+
+  // Données
+  const [commandesDistinctes, setCommandesDistinctes] = useState([]);
+  const [selectedCommande, setSelectedCommande] = useState(null);
+  const [postesCommande, setPostesCommande] = useState([]);
+
+  // UI
   const [showScrollToTop, setShowScrollToTop] = useState(false);
 
+  const detailModalRef = useRef(null);
   const flatListRef = useRef(null);
-  const modalizeRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
 
   // ── Back handler ─────────────────────────────
@@ -137,181 +143,145 @@ const LivraisonsAllListScreen = ({ route }) => {
     return () => sub.remove();
   }, [navigation]);
 
+  // ── Focus ────────────────────────────────────
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(loadOfflineOrders(client.kunnr));
+      dispatch(fetchPendingActionsCount());
+    }, [offlineOrders.length]),
+  );
+
   // ── Chargement ───────────────────────────────
-  const loadData = useCallback(
-    (year = selectedYear, month = selectedMonth) => {
-      if (!isServerReachable) return;
-      const { startDateFormatted, endDateFormatted } = getMonthDateRange(
-        year,
-        month,
-      );
+  const { startDateFormatted, endDateFormatted } = getMonthDateRange(
+    selectedYear,
+    selectedMonth,
+  );
+
+  const loadData = useCallback(() => {
+    if (isServerReachable) {
       dispatch(
-        getAllOutbounds({
+        getAllCommande({
           user: userData?.code,
           dateDebut: startDateFormatted,
           dateFin: endDateFormatted,
         }),
       );
-    },
-    [dispatch, userData?.code, isServerReachable, selectedYear, selectedMonth],
-  );
+    }
+  }, [
+    dispatch,
+    userData?.code,
+    startDateFormatted,
+    endDateFormatted,
+    isServerReachable,
+  ]);
 
   useEffect(() => {
     loadData();
   }, [selectedMonth, selectedYear]);
 
-  // ── Groupement & filtrage ────────────────────
-  const groupLivraisons = useCallback(
-    (list) => {
-      const grouped = {};
-      list
-        .filter((l) => l.client === client?.kunnr)
-        .forEach((item) => {
-          const key = `${item.num_doc}-${item.commercial}-${item.client}`;
-          if (!grouped[key]) {
-            grouped[key] = {
-              num_doc: item.num_doc,
-              commercial: item.commercial,
-              client: item.client,
-              clientName: client?.name1,
-              date_liv: convertirDateSAP(item.date_liv),
-              num_cmd: item.num_cmd,
-              staut_globale: item.staut_globale,
-              articles: [],
-              totalArticles: 0,
-              montantTotal: 0,
-            };
+  // ── Extraction ───────────────────────────────
+  const extraireCommandes = useCallback(
+    (data) => {
+      if (!data?.length) return [];
+      const map = new Map();
+      data
+        .filter((c) => c.client === client?.kunnr)
+        .filter((c) => (showRetours ? c.auart === "ZCRN" : c.auart === "ZCMD"))
+        .forEach((c) => {
+          if (!map.has(c.cmd)) {
+            map.set(c.cmd, {
+              cmd: c.cmd,
+              commercial: c.commercial,
+              client: c.client,
+              clientName: client.name1,
+              auart: c.auart,
+              bukrs: c.bukrs,
+              vgbel: c.vgbel,
+              montantTtc: c.ttc,
+              erdat: convertirDateSAP(c.erdat),
+              statutGlobal: STATUT_MAPPING[c.statu_global] || "Non reliée",
+              status: c.statu_global,
+              isOffline: c?.isOffline || false,
+              totalArticles: data.filter((x) => x.cmd === c.cmd && !x.isDeleted)
+                .length,
+            });
           }
-          const qte = parseFloat(item.qte) || 0;
-          const pu = parseFloat(item.prix_unitaire) || 0;
-          grouped[key].articles.push({
-            num_poste: item.num_poste,
-            article: item.article,
-            designation_article:
-              item.designation_article || `Article ${item.article}`,
-            qte,
-            unite: item.unite,
-            lot: item.lot,
-            prix_unitaire: pu,
-            montant: qte * pu,
-          });
-          grouped[key].totalArticles += 1;
-          grouped[key].montantTotal += qte * pu;
         });
-      return Object.values(grouped);
+      return Array.from(map.values());
     },
-    [client?.kunnr, client?.name1],
+    [client?.kunnr, client?.name1, showRetours],
+  );
+
+  const chargerPostes = useCallback(
+    (cmd) => {
+      if (!commandesVenteData?.length) return [];
+      return commandesVenteData
+        .filter((c) => c.cmd === cmd && !c.isDeleted)
+        .map((c) => ({
+          matnr: c.matnr,
+          posnr: c.posnr,
+          kmein: c.kmein,
+          lsmeng: parseFloat(c.lsmeng),
+          qte_restante: parseFloat(c.qte_restante),
+          designation: c.maktx || `Article ${c.matnr}`,
+          prix: c.prix_unitaire,
+          remise_pourcentage: c.remise_pourcentage,
+          charg: c.charg,
+          auart: c.auart,
+          isOffline: c.isOffline || false,
+        }));
+    },
+    [commandesVenteData],
   );
 
   useEffect(() => {
-    let result = groupLivraisons(livraisonsList);
+    setCommandesDistinctes(extraireCommandes(commandesVenteData));
+  }, [commandesVenteData, extraireCommandes]);
+
+  // Re-extraire quand toggle change
+  useEffect(() => {
+    setCommandesDistinctes(extraireCommandes(commandesVenteData));
+  }, [showRetours]);
+
+  // ── Filtrage ─────────────────────────────────
+  const commandesFiltrees = useMemo(() => {
+    let result = commandesDistinctes;
     if (selectedStatus !== "all")
-      result = result.filter((l) => l.staut_globale === selectedStatus);
+      result = result.filter((c) => c.status === selectedStatus);
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
-        (l) =>
-          l.num_doc.toLowerCase().includes(q) ||
-          l.num_cmd.toLowerCase().includes(q) ||
-          l.clientName?.toLowerCase().includes(q),
+        (c) =>
+          c.cmd.toLowerCase().includes(q) ||
+          c.client.toLowerCase().includes(q) ||
+          c.clientName?.toLowerCase().includes(q),
       );
     }
-    setFilteredLivraisons(result);
-  }, [livraisonsList, searchQuery, selectedStatus, groupLivraisons]);
+    return result;
+  }, [commandesDistinctes, searchQuery, selectedStatus]);
 
   // ── Handlers ─────────────────────────────────
-  const handleLivraisonPress = (livraison) => {
-    setSelectedLivraison(livraison);
-    setArticlesLivraison(livraison.articles);
-    modalizeRef.current?.open();
+  const handleCommandePress = (commande) => {
+    setSelectedCommande(commande);
+    setPostesCommande(chargerPostes(commande.cmd));
+    detailModalRef.current?.open();
   };
 
-  const handlePrintLivraison = (livraison) => {
-    const transformedData = {
-      numero: livraison.num_doc,
-      date: new Date().toLocaleDateString("fr-FR"),
-      heure: new Date().toLocaleTimeString("fr-FR"),
-      clientId: livraison.client,
-      clientNom: livraison.clientName || "N/A",
-      livreur: userData?.magasin,
-      articles: livraison.articles.map((a) => ({
-        code: a.article,
-        description: a.designation_article,
-        quantite: a.qte.toString(),
-        unite: a.unite,
-        lot: a.lot || "-",
-        prixUnitaire: a.prix_unitaire || 0,
-        prix: (a.prix_unitaire || 0).toLocaleString("fr-DZ", {
-          style: "currency",
-          currency: "DZD",
-          minimumFractionDigits: 2,
-        }),
-      })),
-      totalMontant: livraison.montantTotal || 0,
-      total: (livraison.montantTotal || 0).toLocaleString("fr-DZ", {
-        style: "currency",
-        currency: "DZD",
-        minimumFractionDigits: 2,
-      }),
-    };
-    modalizeRef.current?.close();
-    navigation.navigate("PDFViewerScreen", {
-      htmlContent: generateA4InvoicePDF(transformedData),
-      deliveryId: livraison.num_doc,
-      documentType: "livraison",
-      orderData: {
-        cmd: livraison.num_cmd,
-        client: livraison.client,
-        clientName: livraison.clientName || "N/A",
-      },
-      deliveryItems: livraison.articles,
-      userData,
-      deliveryData: transformedData,
-      clientData: client,
-    });
+  const handleRefresh = () => {
+    dispatch(loadOfflineOrders(client.kunnr));
+    dispatch(fetchPendingActionsCount());
+    loadData();
   };
 
-  const handleProcessLivraison = async (livraison) => {
-    try {
-      setIsProcessing(true);
-      const connected = await isConnected();
-      if (!connected) {
-        Alert.alert("Connexion requise", "Vérifiez votre connexion.");
-        return;
-      }
-
-      const statut = livraison.staut_globale?.toLowerCase();
-      if (statut === "initial") {
-        await dispatch(
-          processValidationAndGoodsIssue({
-            deliveryDocument: livraison.num_doc,
-            deliveryItems: livraison.articles.map((a) => ({
-              ReferenceSDDocumentItem: a.num_poste,
-              ActualDeliveryQuantity: a.qte,
-            })),
-          }),
-        ).unwrap();
-      } else if (statut === "sortie") {
-        await dispatch(
-          processCreateBill({ deliveryDocument: livraison.num_doc }),
-        ).unwrap();
-      }
-      loadData();
-    } catch (err) {
-      const msg =
-        err?.step === "validation_sortie"
-          ? err?.error?.message
-          : err?.step === "facture"
-            ? err?.error || "Erreur lors de la facturation."
-            : "Une erreur est survenue.";
-      Alert.alert("Erreur", msg);
-    } finally {
-      setIsProcessing(false);
-      modalizeRef.current?.close();
-    }
+  const handleToggle = (isRetour) => {
+    setShowRetours(isRetour);
+    flatListRef.current?.scrollToOffset({ animated: false, offset: 0 });
+    setShowScrollToTop(false);
   };
 
-  // ─── Render ────────────────────────────────
+  // ── Render ───────────────────────────────────
+  const emptyLabel = showRetours ? "commande retour" : "commande de vente";
+
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <ScreenBackground />
@@ -330,7 +300,9 @@ const LivraisonsAllListScreen = ({ route }) => {
           <Ionicons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Livraisons</Text>
+          <Text style={styles.headerTitle}>
+            {showRetours ? "Commandes retours" : "Commandes de vente"}
+          </Text>
           <Text style={styles.headerSubtitle}>
             {MONTHS[selectedMonth]} {selectedYear}
           </Text>
@@ -350,14 +322,35 @@ const LivraisonsAllListScreen = ({ route }) => {
         showMonthFilter={isServerReachable}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="Rechercher une livraison..."
+        searchPlaceholder="Rechercher une commande..."
       />
+      {/* Toggle */}
+      <View style={styles.tabRow}>
+        <TouchableOpacity
+          style={[styles.tab, !showRetours && styles.tabActive]}
+          onPress={() => handleToggle(false)}
+        >
+          <Text style={[styles.tabText, !showRetours && styles.tabTextActive]}>
+            Commande de Vente
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, showRetours && styles.tabActive]}
+          onPress={() => handleToggle(true)}
+        >
+          <Text style={[styles.tabText, showRetours && styles.tabTextActive]}>
+            Commande de Retours
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Contenu */}
       {loading ? (
         <View style={styles.centerWrap}>
           <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.centerText}>Chargement...</Text>
+          <Text style={styles.centerText}>
+            Chargement des {showRetours ? "retours" : "commandes de vente"}...
+          </Text>
         </View>
       ) : error ? (
         <View style={styles.centerWrap}>
@@ -367,24 +360,28 @@ const LivraisonsAllListScreen = ({ route }) => {
             color="#e53935"
           />
           <Text style={[styles.centerText, { color: "#DC2626" }]}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => loadData()}>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadData}>
             <Text style={styles.retryText}>Réessayer</Text>
           </TouchableOpacity>
         </View>
-      ) : filteredLivraisons.length === 0 ? (
+      ) : commandesFiltrees.length === 0 ? (
         <View style={styles.centerWrap}>
           <MaterialCommunityIcons
-            name="truck-delivery-outline"
+            name={showRetours ? "truck-delivery-outline" : "truck-delivery"}
             size={scale(56)}
             color="#E0E0E0"
           />
-          <Text style={styles.centerText}>Aucune livraison trouvée</Text>
+          <Text style={styles.centerText}>
+            {searchQuery.trim()
+              ? `Aucune ${emptyLabel} ne correspond à votre recherche`
+              : `Aucune ${emptyLabel}`}
+          </Text>
         </View>
       ) : (
         <FlatList
           ref={flatListRef}
-          data={filteredLivraisons}
-          keyExtractor={(item) => `${item.num_doc}-${item.client}`}
+          data={commandesFiltrees}
+          keyExtractor={(item) => `${item.cmd}-${item.client}`}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           onScroll={Animated.event(
@@ -399,20 +396,23 @@ const LivraisonsAllListScreen = ({ route }) => {
           refreshControl={
             <RefreshControl
               refreshing={loading}
-              onRefresh={() => loadData()}
+              onRefresh={handleRefresh}
               colors={[BLUE]}
               tintColor={BLUE}
             />
           }
           renderItem={({ item }) => (
             <StatusListCard
-              date={item.date_liv}
-              number={`N°${item.num_doc}`}
-              statusColor={getStatusColor(item.staut_globale)}
-              statusLabel={getStatusLabel(item.staut_globale)}
+              date={item.erdat}
+              number={`N°${item.cmd}`}
+              reference={item.vgbel ? `Réf: ${item.vgbel}` : undefined}
+              hideNumber={item.isOffline}
+              statusColor={STATUS_COLORS[item.status] || "#9CA3AF"}
+              statusLabel={item.statutGlobal}
               articlesCount={item.totalArticles}
-              amount={item.montantTotal}
-              onPress={() => handleLivraisonPress(item)}
+              amount={item.montantTtc} // doit être un NOMBRE brut, pas une chaîne formatée
+              isOffline={item.isOffline}
+              onPress={() => handleCommandePress(item)}
             />
           )}
         />
@@ -435,21 +435,16 @@ const LivraisonsAllListScreen = ({ route }) => {
       )}
 
       {/* Modalize détail */}
-      <LivraisonDetailModalize
-        reference={modalizeRef}
-        livraison={selectedLivraison}
-        articles={articlesLivraison}
-        isProcessing={isProcessing}
-        isServerReachable={isServerReachable}
-        getProcessButtonConfig={getProcessButtonConfig}
-        onPrint={handlePrintLivraison}
-        onProcess={handleProcessLivraison}
+      <CommandeVenteDetailModalize
+        reference={detailModalRef}
+        commande={selectedCommande}
+        postes={postesCommande}
       />
     </View>
   );
 };
 
-export default LivraisonsAllListScreen;
+export default CommandeVenteListeScreen;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
@@ -489,6 +484,32 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
+  // Tabs
+  tabRow: {
+    flexDirection: "row",
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.lg,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  tab: {
+    paddingVertical: Spacing.sm,
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: BLUE,
+  },
+  tabText: {
+    fontSize: fs(14),
+    color: TEXT_MUTED,
+    fontWeight: "400",
+  },
+  tabTextActive: {
+    color: BLUE,
+    fontWeight: "700",
+  },
+
+  // États
   centerWrap: {
     flex: 1,
     alignItems: "center",

@@ -43,10 +43,10 @@ import ScreenBackground from "../../../components/common/ScreenBackground";
 
 import ArticlesModalize from "../../../components/ArticlesModalize";
 import MonthStatusFilter from "../../../components/common/Monthstatusfilter";
-import QuotationCard from "../../../components/common/commande/Quotationcard";
 import QuotationDetailModalize from "../../../components/common/commande/Quotationdetailmodalize";
 import QuotationActionModalize from "../../../components/common/commande/Quotationactionmodalize";
 import QuotationQuantityModalize from "../../../components/common/commande/Quotationquantitymodalize";
+import StatusListCard from "../../../components/common/StatusListCard";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 const BLUE = "#03A9F4";
@@ -99,6 +99,12 @@ const STATUT_MAPPING = {
   initial: "Initial",
   encours: "En cours",
   termine: "Terminé",
+};
+
+const STATUS_COLORS = {
+  initial: "#3B82F6",
+  encours: "#10B981",
+  termine: "#8B5CF6",
 };
 
 // ─── Écran ────────────────────────────────────────────────────────────────────
@@ -215,10 +221,7 @@ const QuotationListScreen = ({ route }) => {
               cmd: q.cmd,
               client: q.client,
               clientName: client.name1,
-              montantTtc: parseFloat(q.ttc).toLocaleString("fr-DZ", {
-                style: "currency",
-                currency: "DZD",
-              }),
+              montantTtc: q.ttc,
               erdat: convertirDateSAP(q.erdat),
               statutGlobal: STATUT_MAPPING[q.statu_off_entete] || "Non reliée",
               status: q.statu_off_entete,
@@ -501,8 +504,16 @@ const QuotationListScreen = ({ route }) => {
             />
           }
           renderItem={({ item }) => (
-            <QuotationCard
-              item={item}
+            <StatusListCard
+              date={item.erdat}
+              number={`N°${item.cmd}`}
+              reference={item.vgbel ? `Réf: ${item.vgbel}` : undefined}
+              hideNumber={item.isOffline}
+              statusColor={STATUS_COLORS[item.status] || "#9CA3AF"}
+              statusLabel={item.statutGlobal}
+              articlesCount={item.totalArticles}
+              amount={item.montantTtc} // doit être un NOMBRE brut, pas une chaîne formatée
+              isOffline={item.isOffline}
               onPress={() => handleQuotationPress(item)}
             />
           )}

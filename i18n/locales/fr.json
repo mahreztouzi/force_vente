@@ -1,0 +1,79 @@
+{
+  "common": {
+    "back": "Retour",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "menu": "Menu",
+    "logout": "Déconnexion",
+    "logoutConfirm": "Êtes-vous sûr de vouloir vous déconnecter ?",
+    "yes": "Oui",
+    "pendingSync": "En attente de sync"
+  },
+  "home": {
+    "searchPlaceholder": "Rechercher des produits...",
+    "noResults": "Aucun article trouvé",
+    "all": "Tous",
+    "loadError": "Une erreur est survenue lors du chargement des articles."
+  },
+  "client": {
+    "title": "Clients",
+    "balance": "Solde Client",
+    "address": "Adresse du client",
+    "newOrder": "Nouvelle Commande",
+    "newDelivery": "Nouvelle Livraison",
+    "call": "Appeler",
+    "message": "Message",
+    "email": "Email",
+    "favorites": "Favoris",
+    "selectReturnReason": "Sélectionnez un motif de retour",
+    "code": "Code",
+    "unavailablePhone": "Numéro de téléphone non disponible",
+    "unavailableEmail": "Adresse e-mail non disponible",
+    "newOffer": "Nouvelle Offre",
+    "newOfferSub": "Créer une nouvelle offre",
+    "returnOrder": "Commande Retour",
+    "returnOrderSub": "Retourner des articles",
+    "newDeliverySub": "Créer une livraison",
+    "newPayment": "Nouvel Encaissement",
+    "newPaymentSub": "Encaisser un paiement",
+    "historyDeliveries": "Historique Livraisons",
+    "historyDeliveriesSub": "Consulter les livraisons",
+    "historyOffers": "Historique des Offres",
+    "historyOffersSub": "Consulter les offres",
+    "historyOrders": "Historique des Commandes",
+    "historyOrdersSub": "Consulter les commandes"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "french": "Français",
+    "arabic": "العربية"
+  },
+  "nav": {
+    "other": "Autre navigation",
+    "reception": "Nouvelle réception",
+    "encaissement": "Nouvel encaissement"
+  },
+  "tabs": {
+    "home": "Accueil",
+    "clients": "Clients",
+    "cart": "Panier",
+    "menu": "Menu"
+  },
+  "clients": {
+    "title": "Clients",
+    "searchPlaceholder": "Rechercher un client...",
+    "allClients": "Tous les clients",
+    "favorites": "Favoris",
+    "noResults": "Aucun client trouvé",
+    "error": "Une erreur est survenue",
+    "noPhone": "Aucun n°",
+    "noPhoneTitle": "Aucun numéro disponible",
+    "noPhoneMsg": "Ce client n'a pas de numéro de téléphone enregistré.",
+    "call": "Appeler",
+    "message": "Message"
+  }
+}

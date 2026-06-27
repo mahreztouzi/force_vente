@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
@@ -29,9 +30,17 @@ const ACTIVE_COLOR = "#e0732f";
 const INACTIVE_COLOR = "#5B5F66";
 const PILL_BG = "#ffa31834";
 
+// 2. Dans TabIcon — remplacer les noms hardcodés par t()
 const TabIcon = ({ routeName, focused }) => {
+  const { t } = useTranslation();
   const icon = TAB_ICONS[routeName];
   const color = focused ? ACTIVE_COLOR : INACTIVE_COLOR;
+
+  const LABELS = {
+    Accueil: t("tabs.home"),
+    Clients: t("tabs.clients"),
+    Panier: t("tabs.cart"),
+  };
 
   return (
     <View style={[styles.pill, focused && styles.pillActive]}>
@@ -41,7 +50,7 @@ const TabIcon = ({ routeName, focused }) => {
         color={color}
       />
       <Text style={[styles.label, { color }, focused && styles.labelFocused]}>
-        {routeName}
+        {LABELS[routeName]}
       </Text>
     </View>
   );
@@ -54,6 +63,7 @@ const CustomTabBar = ({
   openDrawer,
   cartCount,
 }) => {
+  const { t } = useTranslation();
   return (
     <View style={styles.tabBarWrap}>
       <View style={StyleSheet.absoluteFill}>
@@ -108,7 +118,7 @@ const CustomTabBar = ({
         >
           <View style={styles.pill}>
             <Ionicons name="menu" size={ICON_SIZE} color={INACTIVE_COLOR} />
-            <Text style={styles.label}>Menu</Text>
+            <Text style={styles.label}>{t("tabs.menu")}</Text>
           </View>
         </TouchableOpacity>
       </View>

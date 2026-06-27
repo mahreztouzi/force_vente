@@ -62,7 +62,7 @@ import BrouillonScreen from "../screens/BrouillonScreen";
 import DraftCommandeScreen from "../screens/DraftCommandeScreen";
 import CreateQuotationScreen from "../screens/CreateQutationScreen";
 import QuotationListesScreen from "../screens/QuotationListesScreen";
-import CommandeVenteListeScreen from "../screens/CommandeVenteRetourScreen";
+import CommandeVenteListeScreen from "../screens/newTheme/commande/Commandeventelistescreen";
 import ConnectionIndicator from "../components/ConnectionIndicator";
 import ConnectionManager from "../components/ConnectionLister";
 import ServerConfigScreen from "../screens/ServerConfigScreen";
@@ -473,18 +473,18 @@ function RootNavigator() {
         <Stack.Screen
           name="all_orders"
           component={CommandeVenteListeScreen}
-          options={{
-            ...headerScreenOptions,
-            headerLeft: () => (
-              <MaterialCommunityIcons
-                name="arrow-left-circle"
-                size={30}
-                color="white"
-                style={{ marginLeft: 15 }}
-                onPress={() => navigation.goBack()}
-              />
-            ),
-          }}
+          // options={{
+          //   ...headerScreenOptions,
+          //   headerLeft: () => (
+          //     <MaterialCommunityIcons
+          //       name="arrow-left-circle"
+          //       size={30}
+          //       color="white"
+          //       style={{ marginLeft: 15 }}
+          //       onPress={() => navigation.goBack()}
+          //     />
+          //   ),
+          // }}
           listeners={{
             focus: () => setCurrentRoute("all_orders"),
           }}

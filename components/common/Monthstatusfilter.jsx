@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  Modal,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { scale, fs } from "../../utils/responsive";
@@ -66,11 +68,21 @@ const MonthStatusFilter = ({
   showSearch = true,
 }) => {
   const [showYearPicker, setShowYearPicker] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
+  const yearBtnRef = useRef(null);
+
   const currentYear = new Date().getFullYear();
   const availableYears = Array.from(
     { length: 5 },
     (_, i) => currentYear - 4 + i,
   );
+
+  const openYearPicker = () => {
+    yearBtnRef.current?.measure((_x, _y, _w, h, _px, py) => {
+      setDropdownPos({ top: py + h + scale(4), right: Spacing.lg });
+      setShowYearPicker(true);
+    });
+  };
 
   return (
     <View>
@@ -111,45 +123,20 @@ const MonthStatusFilter = ({
           <View style={styles.monthHeader}>
             <Text style={styles.monthTitle}>Période</Text>
             <TouchableOpacity
+              ref={yearBtnRef}
               style={styles.yearBtn}
-              onPress={() => setShowYearPicker((v) => !v)}
+              onPress={openYearPicker}
             >
               <Text style={styles.yearBtnText}>{selectedYear}</Text>
               <MaterialIcons
-                name="keyboard-arrow-down"
+                name={
+                  showYearPicker ? "keyboard-arrow-up" : "keyboard-arrow-down"
+                }
                 size={scale(16)}
                 color={BLUE}
               />
             </TouchableOpacity>
           </View>
-
-          {showYearPicker && (
-            <FlatList
-              data={availableYears}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(y) => y.toString()}
-              contentContainerStyle={styles.yearList}
-              renderItem={({ item: y }) => (
-                <TouchableOpacity
-                  style={[styles.chip, selectedYear === y && styles.chipActive]}
-                  onPress={() => {
-                    onYearChange(y);
-                    setShowYearPicker(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      selectedYear === y && styles.chipTextActive,
-                    ]}
-                  >
-                    {y}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          )}
 
           <FlatList
             data={MONTHS.map((name, i) => ({ name, i }))}
@@ -197,6 +184,60 @@ const MonthStatusFilter = ({
           )}
         </View>
       )}
+
+      {/* Year picker dropdown modal */}
+      <Modal
+        visible={showYearPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowYearPicker(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowYearPicker(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View
+                style={[
+                  styles.yearDropdown,
+                  { top: dropdownPos.top, right: dropdownPos.right },
+                ]}
+              >
+                {availableYears.map((y) => {
+                  const active = selectedYear === y;
+                  return (
+                    <TouchableOpacity
+                      key={y}
+                      style={[
+                        styles.yearOption,
+                        active && styles.yearOptionActive,
+                      ]}
+                      onPress={() => {
+                        onYearChange(y);
+                        setShowYearPicker(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.yearOptionText,
+                          active && styles.yearOptionTextActive,
+                        ]}
+                      >
+                        {y}
+                      </Text>
+                      {active && (
+                        <MaterialIcons
+                          name="check"
+                          size={scale(14)}
+                          color="#fff"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 };
@@ -251,7 +292,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   yearBtnText: { fontSize: fs(12), fontWeight: "700", color: BLUE },
-  yearList: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xs },
   monthList: { paddingHorizontal: Spacing.md },
   chip: {
     paddingHorizontal: Spacing.md,
@@ -263,6 +303,38 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: BLUE },
   chipText: { fontSize: fs(12), fontWeight: "600", color: TEXT_MUTED },
   chipTextActive: { color: "#fff" },
+
+  // Year dropdown modal
+  modalOverlay: {
+    flex: 1,
+  },
+  yearDropdown: {
+    position: "absolute",
+    backgroundColor: "#fff",
+    borderRadius: Radius.md,
+    paddingVertical: scale(4),
+    minWidth: scale(120),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  yearOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: scale(10),
+    borderRadius: Radius.sm,
+    marginHorizontal: scale(4),
+    marginVertical: scale(1),
+  },
+  yearOptionActive: { backgroundColor: BLUE },
+  yearOptionText: { fontSize: fs(13), fontWeight: "600", color: TEXT_DARK },
+  yearOptionTextActive: { color: "#fff" },
 
   searchWrap: {
     flexDirection: "row",

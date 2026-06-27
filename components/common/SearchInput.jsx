@@ -22,9 +22,11 @@
 //  * Mode "déclencheur + sélection personnalisée" (ex: CartScreen avec badge avatar du client choisi) :
 //  *   <SearchInput onPress={openPicker} rightSlot={<MonBadge />} fullWidth />
 //  *
+//  * Bouton filtre intégré DANS le bloc searchWrap, collé à droite (ex: HomeScreen) :
+//  *   <SearchInput onPress={openSearch} onFilterPress={openFilters} filterActive={hasFilters} fullWidth />
+//  *
 //  * fullWidth: retire le padding horizontal du conteneur — à utiliser quand l'écran
-//  * appelant a déjà son propre padding extérieur (ex: CartScreen) et ne veut pas
-//  * de padding supplémentaire autour du SearchInput.
+//  * appelant a déjà son propre padding extérieur (ex: CartScreen, HomeScreen).
 //  */
 // const SearchInput = ({
 //   value = "",
@@ -36,10 +38,30 @@
 //   rightSlot,
 //   showChevron = false,
 //   fullWidth = false,
-//   onFilterPress, // nouveau
-//   filterActive = false, // nouveau
+//   onFilterPress,
+//   filterActive = false,
+//   filterBtnRef,
 // }) => {
 //   const isTrigger = !!onPress;
+
+//   // Le bouton filtre est maintenant un élément interne de searchWrap, pas un frère séparé.
+//   const filterButton = onFilterPress && (
+//     <TouchableOpacity
+//       ref={filterBtnRef}
+//       style={[styles.filterBtn, filterActive && styles.filterBtnActive]}
+//       onPress={(e) => {
+//         e.stopPropagation?.(); // évite de déclencher aussi onPress du conteneur en mode déclencheur
+//         onFilterPress();
+//       }}
+//       activeOpacity={0.7}
+//     >
+//       <Ionicons
+//         name="options-outline"
+//         size={scale(26)}
+//         color={filterActive ? Colors.primary : Colors.textPrimary}
+//       />
+//     </TouchableOpacity>
+//   );
 
 //   return (
 //     <View style={[styles.row, fullWidth && styles.rowFullWidth]}>
@@ -86,6 +108,7 @@
 //               color={Colors.textMuted}
 //             />
 //           )}
+//           {filterButton}
 //         </TouchableOpacity>
 //       ) : (
 //         <View style={[styles.searchWrap]}>
@@ -117,22 +140,8 @@
 //               />
 //             </TouchableOpacity>
 //           )}
+//           {filterButton}
 //         </View>
-//       )}
-
-//       {/* Bouton filtre — affiché uniquement si onFilterPress est fourni */}
-//       {onFilterPress && (
-//         <TouchableOpacity
-//           style={[styles.filterBtn, filterActive && styles.filterBtnActive]}
-//           onPress={onFilterPress}
-//           activeOpacity={0.7}
-//         >
-//           <Ionicons
-//             name="options-outline"
-//             size={scale(20)}
-//             color={filterActive ? Colors.white : Colors.textPrimary}
-//           />
-//         </TouchableOpacity>
 //       )}
 //     </View>
 //   );
@@ -177,18 +186,17 @@
 //     fontWeight: "400",
 //     color: Colors.textMuted,
 //   },
+//   // Bouton filtre, maintenant interne au searchWrap : taille réduite pour rester dans la hauteur (52)
 //   filterBtn: {
-//     width: scale(44),
-//     height: scale(44),
-//     borderRadius: scale(22),
-//     borderWidth: 2,
-//     borderColor: Colors.border,
+//     width: scale(36),
+//     height: scale(36),
+//     borderRadius: scale(18),
+//     // backgroundColor: Colors.white,
 //     alignItems: "center",
 //     justifyContent: "center",
 //   },
 //   filterBtnActive: {
-//     backgroundColor: Colors.primary,
-//     borderColor: Colors.primary,
+//     // backgroundColor: Colors.primary,
 //   },
 // });
 
@@ -204,24 +212,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, Radius } from "../../constants/Theme";
 import { scale } from "../../utils/responsive";
 
-/**
- * Input de recherche réutilisable.
- *
- * Mode "édition directe" — filtre sur place (ex: ClientPickerScreen) :
- *   <SearchInput value={query} onChangeText={setQuery} placeholder="Rechercher..." autoFocus />
- *
- * Mode "déclencheur" — ouvre un autre écran au tap (ex: ClientListScreen) :
- *   <SearchInput placeholder="Rechercher un client..." onPress={() => navigation.navigate("ClientPicker")} />
- *
- * Mode "déclencheur + sélection personnalisée" (ex: CartScreen avec badge avatar du client choisi) :
- *   <SearchInput onPress={openPicker} rightSlot={<MonBadge />} fullWidth />
- *
- * Bouton filtre intégré DANS le bloc searchWrap, collé à droite (ex: HomeScreen) :
- *   <SearchInput onPress={openSearch} onFilterPress={openFilters} filterActive={hasFilters} fullWidth />
- *
- * fullWidth: retire le padding horizontal du conteneur — à utiliser quand l'écran
- * appelant a déjà son propre padding extérieur (ex: CartScreen, HomeScreen).
- */
 const SearchInput = ({
   value = "",
   onChangeText,
@@ -235,16 +225,16 @@ const SearchInput = ({
   onFilterPress,
   filterActive = false,
   filterBtnRef,
+  isRTL = false,
 }) => {
   const isTrigger = !!onPress;
 
-  // Le bouton filtre est maintenant un élément interne de searchWrap, pas un frère séparé.
   const filterButton = onFilterPress && (
     <TouchableOpacity
       ref={filterBtnRef}
       style={[styles.filterBtn, filterActive && styles.filterBtnActive]}
       onPress={(e) => {
-        e.stopPropagation?.(); // évite de déclencher aussi onPress du conteneur en mode déclencheur
+        e.stopPropagation?.();
         onFilterPress();
       }}
       activeOpacity={0.7}
@@ -257,12 +247,27 @@ const SearchInput = ({
     </TouchableOpacity>
   );
 
+  const searchIcon = (
+    <Ionicons
+      name="search"
+      size={scale(18)}
+      color={Colors.textMuted}
+      style={styles.searchIconBg}
+    />
+  );
+
   return (
-    <View style={[styles.row, fullWidth && styles.rowFullWidth]}>
+    <View
+      style={[
+        styles.row,
+        fullWidth && styles.rowFullWidth,
+        isRTL && styles.rowRTL,
+      ]}
+    >
       {onBackPress && (
         <TouchableOpacity onPress={onBackPress} style={styles.backBtn}>
           <Ionicons
-            name="arrow-back"
+            name={isRTL ? "arrow-forward" : "arrow-back"}
             size={scale(22)}
             color={Colors.textPrimary}
           />
@@ -271,7 +276,7 @@ const SearchInput = ({
 
       {isTrigger ? (
         <TouchableOpacity
-          style={[styles.searchWrap]}
+          style={[styles.searchWrap, isRTL && styles.searchWrapRTL]}
           onPress={onPress}
           activeOpacity={0.7}
         >
@@ -279,25 +284,18 @@ const SearchInput = ({
             rightSlot
           ) : (
             <>
-              <Ionicons
-                name="search"
-                size={scale(18)}
-                color={Colors.textMuted}
-                style={{
-                  backgroundColor: "black",
-                  paddingHorizontal: 12,
-                  paddingVertical: 5,
-                  borderRadius: 30,
-                }}
-              />
-              <Text style={styles.placeholderText} numberOfLines={1}>
+              {searchIcon}
+              <Text
+                style={[styles.placeholderText, isRTL && styles.textRTL]}
+                numberOfLines={1}
+              >
                 {value || placeholder}
               </Text>
             </>
           )}
           {showChevron && (
             <Ionicons
-              name="chevron-forward"
+              name={isRTL ? "chevron-back" : "chevron-forward"}
               size={scale(18)}
               color={Colors.textMuted}
             />
@@ -305,20 +303,10 @@ const SearchInput = ({
           {filterButton}
         </TouchableOpacity>
       ) : (
-        <View style={[styles.searchWrap]}>
-          <Ionicons
-            name="search"
-            size={scale(18)}
-            color={Colors.textMuted}
-            style={{
-              backgroundColor: "black",
-              paddingHorizontal: 12,
-              paddingVertical: 5,
-              borderRadius: 30,
-            }}
-          />
+        <View style={[styles.searchWrap, isRTL && styles.searchWrapRTL]}>
+          {searchIcon}
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, isRTL && styles.textRTL]}
             placeholder={placeholder}
             placeholderTextColor={Colors.textMuted}
             value={value}
@@ -351,6 +339,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     gap: Spacing.sm,
   },
+  rowRTL: {
+    flexDirection: "row-reverse",
+  },
   rowFullWidth: {
     paddingHorizontal: 0,
   },
@@ -369,6 +360,16 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     borderWidth: 2,
   },
+  // En RTL : icône search à droite, bouton filtre à gauche — on inverse l'ordre des enfants
+  searchWrapRTL: {
+    flexDirection: "row-reverse",
+  },
+  searchIconBg: {
+    backgroundColor: "black",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 30,
+  },
   searchInput: {
     flex: 1,
     ...Typography.body,
@@ -380,16 +381,16 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     color: Colors.textMuted,
   },
-  // Bouton filtre, maintenant interne au searchWrap : taille réduite pour rester dans la hauteur (52)
+  textRTL: {
+    textAlign: "right",
+    writingDirection: "rtl",
+  },
   filterBtn: {
     width: scale(36),
     height: scale(36),
     borderRadius: scale(18),
-    // backgroundColor: Colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
-  filterBtnActive: {
-    // backgroundColor: Colors.primary,
-  },
+  filterBtnActive: {},
 });

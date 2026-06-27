@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import PriceDisplay from "../Pricedisplay";
 
 const STATUS_COLORS = {
   initial: "#3B82F6",
@@ -57,7 +58,7 @@ const CommandeVenteCard = ({ item, onPress }) => {
             <MaterialIcons name="inventory" size={scale(15)} color="#6B7280" />
             <Text style={styles.statText}>{item.totalArticles} articles</Text>
           </View>
-          <Text style={styles.montantText}>{item.montantTtc}</Text>
+          <PriceDisplay amount={item.montantTtc} intSize={20} decSize={13} />
         </View>
         <MaterialIcons name="chevron-right" size={scale(20)} color="#9CA3AF" />
       </View>

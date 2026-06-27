@@ -8,6 +8,7 @@ import {
   Alert,
   Animated,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Swipeable } from "react-native-gesture-handler";
 import { Avatar } from "react-native-elements";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -34,6 +35,7 @@ const ClientListItem = ({
   onDetailsPress,
   isFavorite = false,
 }) => {
+  const { t } = useTranslation();
   const swipeableRef = useRef(null);
   const hasPhone = !!client?.num_tel;
 
@@ -42,11 +44,9 @@ const ClientListItem = ({
     if (hasPhone) {
       Linking.openURL(`tel:${client.num_tel}`);
     } else {
-      Alert.alert(
-        "Aucun numéro disponible",
-        "Ce client n'a pas de numéro de téléphone enregistré.",
-        [{ text: "OK" }],
-      );
+      Alert.alert(t("clients.noPhoneTitle"), t("clients.noPhoneMsg"), [
+        { text: "OK" },
+      ]);
     }
   }, [client?.num_tel, hasPhone]);
 
@@ -117,7 +117,7 @@ const ClientListItem = ({
               size={scale(20)}
               color="#fff"
             />
-            <Text style={styles.actionBtnText}>Message</Text>
+            <Text style={styles.actionBtnText}>{t("clients.message")}</Text>
           </TouchableOpacity>
         </Animated.View>
 
@@ -140,7 +140,7 @@ const ClientListItem = ({
               size={scale(20)}
               color="#fff"
             />
-            <Text style={styles.actionBtnText}>Appeler</Text>
+            <Text style={styles.actionBtnText}>{t("clients.call")}</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
@@ -216,7 +216,7 @@ const ClientListItem = ({
                     color="#9CA3AF"
                   />
                   <Text style={[styles.phonePillText, { color: "#9CA3AF" }]}>
-                    Aucun n°
+                    {t("clients.noPhone")}
                   </Text>
                 </View>
               )}

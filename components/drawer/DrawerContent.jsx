@@ -34,7 +34,6 @@
 //         .toUpperCase()
 //     : "U";
 
-//   // Découpe le montant en { integer, decimal } pour affichage style AliExpress (déjà utilisé dans ArticleCard)
 //   const splitAmount = (value) => {
 //     const num = parseFloat(value || 0);
 //     const fixed = num.toFixed(2);
@@ -56,7 +55,7 @@
 //   };
 
 //   const handleEncaissement = () => {
-//     // Pas de logique pour l'instant — l'écran sera créé plus tard
+//     // Écran à créer
 //   };
 
 //   const handleLogout = () => {
@@ -70,10 +69,7 @@
 //           onPress: () => {
 //             onClose?.();
 //             dispatch(logoutUser()).then(() => {
-//               navigation.reset({
-//                 index: 0,
-//                 routes: [{ name: "Login" }],
-//               });
+//               navigation.reset({ index: 0, routes: [{ name: "Login" }] });
 //             });
 //           },
 //         },
@@ -103,7 +99,7 @@
 
 //   return (
 //     <View style={styles.container}>
-//       {/* Header : titre + X pour fermer */}
+//       {/* Header : titre + X */}
 //       <View style={styles.topHeader}>
 //         <Text style={styles.topHeaderTitle}>Menu</Text>
 //         <TouchableOpacity
@@ -115,18 +111,52 @@
 //         </TouchableOpacity>
 //       </View>
 
-//       {/* Profil */}
-//       <View style={styles.profileRow}>
-//         <View style={styles.avatar}>
-//           <Text style={styles.avatarText}>{initials}</Text>
+//       {/* Card profil + montant */}
+//       <View style={styles.profileCard}>
+//         {/* Ligne avatar + nom + code */}
+//         <View style={styles.profileRow}>
+//           <View style={styles.avatar}>
+//             <Text style={styles.avatarText}>{initials}</Text>
+//           </View>
+//           <View style={styles.profileTextWrap}>
+//             <Text style={styles.profileName} numberOfLines={1}>
+//               {userData?.fullName || "Utilisateur"}
+//             </Text>
+//             <Text style={styles.profileCode}>{userData?.code}</Text>
+//           </View>
 //         </View>
-//         <View style={styles.profileTextWrap}>
-//           <Text style={styles.profileName} numberOfLines={1}>
-//             {userData?.fullName || "Utilisateur"}
-//           </Text>
-//           <Text style={styles.profileCode}>{userData?.code}</Text>
+
+//         {/* Séparateur interne */}
+//         <View style={styles.cardDivider} />
+
+//         {/* Montant — sans titre, juste le chiffre */}
+//         <View style={styles.montantValueRow}>
+//           <Text style={styles.montantInteger}>{montantSplit.integer}</Text>
+//           <Text style={styles.montantDecimal}>,{montantSplit.decimal}</Text>
+//           <Text style={styles.montantCurrency}> DA</Text>
 //         </View>
+
+//         {/* Offline sync si besoin */}
+//         {totalMontant && totalMontant != 0 ? (
+//           <View style={styles.offlineRow}>
+//             <MaterialIcons
+//               name="sync-disabled"
+//               size={scale(13)}
+//               color={ORANGE}
+//             />
+//             <Text style={styles.offlineLabel}>En attente de sync</Text>
+//             <Text style={styles.offlineAmount}>
+//               {parseFloat(totalMontant).toLocaleString("fr-DZ", {
+//                 style: "currency",
+//                 currency: "DZD",
+//                 minimumFractionDigits: 2,
+//               })}
+//             </Text>
+//           </View>
+//         ) : null}
 //       </View>
+
+//       <View style={styles.separator} />
 
 //       {/* Paramètres */}
 //       <TouchableOpacity
@@ -151,43 +181,10 @@
 
 //       <View style={styles.separator} />
 
-//       {/* Carte montant */}
-//       <View style={styles.montantCard}>
-//         <View style={styles.montantHeader}>
-//           <View style={styles.montantIconWrap}>
-//             <MaterialIcons name="payments" size={scale(18)} color={GREEN} />
-//           </View>
-//           <Text style={styles.montantLabel}>Montant encaissé</Text>
-//         </View>
+//       {/* Titre section navigation */}
+//       <Text style={styles.sectionTitle}>Autre navigation</Text>
 
-//         <View style={styles.montantValueRow}>
-//           <Text style={styles.montantInteger}>{montantSplit.integer}</Text>
-//           <Text style={styles.montantDecimal}>,{montantSplit.decimal}</Text>
-//           <Text style={styles.montantCurrency}>DA</Text>
-//         </View>
-
-//         {totalMontant && totalMontant != 0 ? (
-//           <View style={styles.offlineRow}>
-//             <MaterialIcons
-//               name="sync-disabled"
-//               size={scale(13)}
-//               color={ORANGE}
-//             />
-//             <Text style={styles.offlineLabel}>En attente de sync</Text>
-//             <Text style={styles.offlineAmount}>
-//               {parseFloat(totalMontant).toLocaleString("fr-DZ", {
-//                 style: "currency",
-//                 currency: "DZD",
-//                 minimumFractionDigits: 2,
-//               })}
-//             </Text>
-//           </View>
-//         ) : null}
-//       </View>
-
-//       <View style={styles.separator} />
-
-//       {/* Navigation simple */}
+//       {/* Navigation */}
 //       <View style={styles.navList}>
 //         {NAV_ITEMS.map((item) => (
 //           <TouchableOpacity
@@ -213,7 +210,7 @@
 //         ))}
 //       </View>
 
-//       {/* Spacer — pousse la déconnexion en bas */}
+//       {/* Spacer */}
 //       <View style={{ flex: 1 }} />
 
 //       {/* Déconnexion */}
@@ -239,7 +236,7 @@
 //     paddingBottom: scale(32),
 //   },
 
-//   // Header : Menu + X
+//   // Header
 //   topHeader: {
 //     flexDirection: "row",
 //     alignItems: "center",
@@ -255,12 +252,19 @@
 //     padding: Spacing.xs,
 //   },
 
-//   // Profil
+//   // Card profil + montant
+//   profileCard: {
+//     backgroundColor: "#fff",
+//     borderRadius: Radius.lg,
+//     padding: Spacing.lg,
+//     marginBottom: Spacing.lg,
+//     borderWidth: 1,
+//     borderColor: BORDER,
+//   },
 //   profileRow: {
 //     flexDirection: "row",
 //     alignItems: "center",
 //     gap: Spacing.md,
-//     marginBottom: Spacing.lg,
 //   },
 //   avatar: {
 //     width: scale(48),
@@ -289,80 +293,38 @@
 //     marginTop: 2,
 //   },
 
-//   // Paramètres — juste sous le profil, comme demandé
-//   settingsRow: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     justifyContent: "space-between",
-//     paddingVertical: Spacing.sm,
-//     marginBottom: Spacing.lg,
-//   },
-//   settingsLeft: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: Spacing.md,
-//   },
-//   settingsLabel: {
-//     fontSize: fs(14),
-//     fontWeight: "600",
-//     color: TEXT_DARK,
-//   },
-
-//   separator: {
+//   // Séparateur interne à la card
+//   cardDivider: {
 //     height: 1,
 //     backgroundColor: BORDER,
-//     marginBottom: Spacing.lg,
+//     marginVertical: Spacing.md,
 //   },
 
-//   // Carte montant — décimales et devise en petit
-//   montantCard: {
-//     backgroundColor: "#fff",
-//     borderRadius: Radius.lg,
-//     padding: Spacing.lg,
-//     marginBottom: Spacing.lg,
-//     borderWidth: 1,
-//     borderColor: BORDER,
-//   },
-//   montantHeader: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: Spacing.sm,
-//     marginBottom: Spacing.sm,
-//   },
-//   montantIconWrap: {
-//     width: scale(30),
-//     height: scale(30),
-//     borderRadius: scale(8),
-//     backgroundColor: "#E1F5EE",
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   montantLabel: {
-//     fontSize: fs(12),
-//     fontWeight: "600",
-//     color: TEXT_MUTED,
-//   },
+//   // Montant (sans titre)
 //   montantValueRow: {
 //     flexDirection: "row",
+//     justifyContent: "flex-end",
 //     alignItems: "baseline",
 //   },
 //   montantInteger: {
-//     fontSize: fs(26),
+//     fontSize: fs(28),
 //     fontWeight: "800",
 //     color: TEXT_DARK,
 //     letterSpacing: -0.5,
 //   },
 //   montantDecimal: {
-//     fontSize: fs(14),
+//     fontSize: fs(15),
 //     fontWeight: "700",
 //     color: TEXT_DARK,
 //   },
 //   montantCurrency: {
-//     fontSize: fs(12),
+//     fontSize: fs(13),
 //     fontWeight: "600",
 //     color: TEXT_MUTED,
-//     marginLeft: 3,
+//     marginLeft: 2,
 //   },
+
+//   // Offline
 //   offlineRow: {
 //     flexDirection: "row",
 //     alignItems: "center",
@@ -383,7 +345,42 @@
 //     color: ORANGE,
 //   },
 
-//   // Navigation simple
+//   separator: {
+//     height: 1,
+//     backgroundColor: BORDER,
+//     marginBottom: Spacing.lg,
+//   },
+
+//   // Paramètres
+//   settingsRow: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     justifyContent: "space-between",
+//     paddingVertical: Spacing.sm,
+//     marginBottom: Spacing.lg,
+//   },
+//   settingsLeft: {
+//     flexDirection: "row",
+//     alignItems: "center",
+//     gap: Spacing.md,
+//   },
+//   settingsLabel: {
+//     fontSize: fs(14),
+//     fontWeight: "600",
+//     color: TEXT_DARK,
+//   },
+
+//   // Titre section
+//   sectionTitle: {
+//     fontSize: fs(11),
+//     fontWeight: "700",
+//     color: TEXT_MUTED,
+//     textTransform: "uppercase",
+//     letterSpacing: 0.5,
+//     marginBottom: Spacing.md,
+//   },
+
+//   // Navigation
 //   navList: {
 //     gap: 2,
 //   },
@@ -433,6 +430,8 @@ import {
 } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
+import { useAppLanguage } from "../../hooks/useAppLanguage";
 import { logoutUser } from "../../redux/slices/authSlice";
 import { scale, fs } from "../../utils/responsive";
 import { Spacing, Radius } from "../../constants/Theme";
@@ -448,6 +447,9 @@ const BORDER = "#EEF1F6";
 const DrawerContent = ({ onClose }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage } = useAppLanguage();
+
   const userData = useSelector((state) => state.auth.user);
   const { totalMontant } = useSelector((state) => state.offline);
 
@@ -462,36 +464,57 @@ const DrawerContent = ({ onClose }) => {
 
   const splitAmount = (value) => {
     const num = parseFloat(value || 0);
-    const fixed = num.toFixed(2);
-    const [integerPart, decimalPart] = fixed.split(".");
-    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-    return { integer: formattedInteger, decimal: decimalPart };
+    const [integerPart, decimalPart] = num.toFixed(2).split(".");
+    return {
+      integer: integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " "),
+      decimal: decimalPart,
+    };
   };
 
   const montantSplit = splitAmount(userData?.montant);
 
-  const handleReception = () => {
-    onClose?.();
-    navigation.navigate("transfert_list", { magasin: userData?.magasin });
-  };
+  const LANGUAGES = [
+    { code: "fr", label: t("settings.french") },
+    { code: "ar", label: t("settings.arabic") },
+  ];
+
+  const NAV_ITEMS = [
+    {
+      key: "reception",
+      label: t("nav.reception"),
+      icon: "package-down",
+      color: BLUE,
+      bg: "#E6F1FB",
+      onPress: () => {
+        onClose?.();
+        navigation.navigate("transfert_list", { magasin: userData?.magasin });
+      },
+    },
+    {
+      key: "encaissement",
+      label: t("nav.encaissement"),
+      icon: "cash-multiple",
+      color: GREEN,
+      bg: "#E1F5EE",
+      onPress: () => {
+        // Écran à créer
+      },
+    },
+  ];
 
   const handleSettings = () => {
     onClose?.();
     navigation.navigate("Settings");
   };
 
-  const handleEncaissement = () => {
-    // Écran à créer
-  };
-
   const handleLogout = () => {
     Alert.alert(
-      "Déconnexion",
-      "Êtes-vous sûr de vouloir vous déconnecter ?",
+      t("common.logout"),
+      t("common.logoutConfirm"),
       [
-        { text: "Annuler", style: "cancel" },
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Oui",
+          text: t("common.yes"),
           onPress: () => {
             onClose?.();
             dispatch(logoutUser()).then(() => {
@@ -504,30 +527,11 @@ const DrawerContent = ({ onClose }) => {
     );
   };
 
-  const NAV_ITEMS = [
-    {
-      key: "reception",
-      label: "Nouvelle réception",
-      icon: "package-down",
-      color: BLUE,
-      bg: "#E6F1FB",
-      onPress: handleReception,
-    },
-    {
-      key: "encaissement",
-      label: "Nouvel encaissement",
-      icon: "cash-multiple",
-      color: GREEN,
-      bg: "#E1F5EE",
-      onPress: handleEncaissement,
-    },
-  ];
-
   return (
     <View style={styles.container}>
-      {/* Header : titre + X */}
+      {/* Header */}
       <View style={styles.topHeader}>
-        <Text style={styles.topHeaderTitle}>Menu</Text>
+        <Text style={styles.topHeaderTitle}>{t("common.menu")}</Text>
         <TouchableOpacity
           onPress={onClose}
           style={styles.closeBtn}
@@ -539,7 +543,6 @@ const DrawerContent = ({ onClose }) => {
 
       {/* Card profil + montant */}
       <View style={styles.profileCard}>
-        {/* Ligne avatar + nom + code */}
         <View style={styles.profileRow}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials}</Text>
@@ -552,17 +555,14 @@ const DrawerContent = ({ onClose }) => {
           </View>
         </View>
 
-        {/* Séparateur interne */}
         <View style={styles.cardDivider} />
 
-        {/* Montant — sans titre, juste le chiffre */}
         <View style={styles.montantValueRow}>
           <Text style={styles.montantInteger}>{montantSplit.integer}</Text>
           <Text style={styles.montantDecimal}>,{montantSplit.decimal}</Text>
           <Text style={styles.montantCurrency}> DA</Text>
         </View>
 
-        {/* Offline sync si besoin */}
         {totalMontant && totalMontant != 0 ? (
           <View style={styles.offlineRow}>
             <MaterialIcons
@@ -570,7 +570,7 @@ const DrawerContent = ({ onClose }) => {
               size={scale(13)}
               color={ORANGE}
             />
-            <Text style={styles.offlineLabel}>En attente de sync</Text>
+            <Text style={styles.offlineLabel}>{t("common.pendingSync")}</Text>
             <Text style={styles.offlineAmount}>
               {parseFloat(totalMontant).toLocaleString("fr-DZ", {
                 style: "currency",
@@ -590,13 +590,13 @@ const DrawerContent = ({ onClose }) => {
         onPress={handleSettings}
         activeOpacity={0.6}
       >
-        <View style={styles.settingsLeft}>
+        <View style={styles.rowLeft}>
           <MaterialCommunityIcons
             name="cog-outline"
             size={scale(20)}
             color={TEXT_DARK}
           />
-          <Text style={styles.settingsLabel}>Paramètres</Text>
+          <Text style={styles.rowLabel}>{t("settings.title")}</Text>
         </View>
         <MaterialCommunityIcons
           name="chevron-right"
@@ -605,12 +605,45 @@ const DrawerContent = ({ onClose }) => {
         />
       </TouchableOpacity>
 
+      {/* Langue */}
+      <View style={styles.langBlock}>
+        <View style={styles.rowLeft}>
+          <MaterialCommunityIcons
+            name="translate"
+            size={scale(20)}
+            color={TEXT_DARK}
+          />
+          <Text style={styles.rowLabel}>{t("settings.language")}</Text>
+        </View>
+        <View style={styles.langChips}>
+          {LANGUAGES.map((lang) => (
+            <TouchableOpacity
+              key={lang.code}
+              style={[
+                styles.langChip,
+                currentLanguage === lang.code && styles.langChipActive,
+              ]}
+              onPress={() => changeLanguage(lang.code)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.langChipText,
+                  currentLanguage === lang.code && styles.langChipTextActive,
+                ]}
+              >
+                {lang.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
       <View style={styles.separator} />
 
-      {/* Titre section navigation */}
-      <Text style={styles.sectionTitle}>Autre navigation</Text>
+      {/* Autre navigation */}
+      <Text style={styles.sectionTitle}>{t("nav.other")}</Text>
 
-      {/* Navigation */}
       <View style={styles.navList}>
         {NAV_ITEMS.map((item) => (
           <TouchableOpacity
@@ -636,7 +669,6 @@ const DrawerContent = ({ onClose }) => {
         ))}
       </View>
 
-      {/* Spacer */}
       <View style={{ flex: 1 }} />
 
       {/* Déconnexion */}
@@ -646,7 +678,7 @@ const DrawerContent = ({ onClose }) => {
         activeOpacity={0.7}
       >
         <Ionicons name="log-out-outline" size={scale(20)} color={RED} />
-        <Text style={styles.logoutText}>Déconnexion</Text>
+        <Text style={styles.logoutText}>{t("common.logout")}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -662,21 +694,14 @@ const styles = StyleSheet.create({
     paddingBottom: scale(32),
   },
 
-  // Header
   topHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: Spacing.xl,
   },
-  topHeaderTitle: {
-    fontSize: fs(18),
-    fontWeight: "800",
-    color: TEXT_DARK,
-  },
-  closeBtn: {
-    padding: Spacing.xs,
-  },
+  topHeaderTitle: { fontSize: fs(18), fontWeight: "800", color: TEXT_DARK },
+  closeBtn: { padding: Spacing.xs },
 
   // Card profil + montant
   profileCard: {
@@ -687,11 +712,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: BORDER,
   },
-  profileRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
+  profileRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
   avatar: {
     width: scale(48),
     height: scale(48),
@@ -700,33 +721,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: {
-    fontSize: fs(16),
-    fontWeight: "700",
-    color: BLUE,
-  },
-  profileTextWrap: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: fs(16),
-    fontWeight: "700",
-    color: TEXT_DARK,
-  },
-  profileCode: {
-    fontSize: fs(12),
-    color: TEXT_MUTED,
-    marginTop: 2,
-  },
-
-  // Séparateur interne à la card
+  avatarText: { fontSize: fs(16), fontWeight: "700", color: BLUE },
+  profileTextWrap: { flex: 1 },
+  profileName: { fontSize: fs(16), fontWeight: "700", color: TEXT_DARK },
+  profileCode: { fontSize: fs(12), color: TEXT_MUTED, marginTop: 2 },
   cardDivider: {
     height: 1,
     backgroundColor: BORDER,
     marginVertical: Spacing.md,
   },
-
-  // Montant (sans titre)
   montantValueRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -738,19 +741,13 @@ const styles = StyleSheet.create({
     color: TEXT_DARK,
     letterSpacing: -0.5,
   },
-  montantDecimal: {
-    fontSize: fs(15),
-    fontWeight: "700",
-    color: TEXT_DARK,
-  },
+  montantDecimal: { fontSize: fs(15), fontWeight: "700", color: TEXT_DARK },
   montantCurrency: {
     fontSize: fs(13),
     fontWeight: "600",
     color: TEXT_MUTED,
     marginLeft: 2,
   },
-
-  // Offline
   offlineRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -760,24 +757,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: BORDER,
   },
-  offlineLabel: {
-    fontSize: fs(11),
-    color: TEXT_MUTED,
-    flex: 1,
-  },
-  offlineAmount: {
-    fontSize: fs(11),
-    fontWeight: "700",
-    color: ORANGE,
-  },
+  offlineLabel: { fontSize: fs(11), color: TEXT_MUTED, flex: 1 },
+  offlineAmount: { fontSize: fs(11), fontWeight: "700", color: ORANGE },
 
-  separator: {
-    height: 1,
-    backgroundColor: BORDER,
-    marginBottom: Spacing.lg,
-  },
+  separator: { height: 1, backgroundColor: BORDER, marginBottom: Spacing.lg },
 
-  // Paramètres
+  // Ligne générique icône + label + chevron
   settingsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -785,18 +770,30 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     marginBottom: Spacing.lg,
   },
-  settingsLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
-  settingsLabel: {
-    fontSize: fs(14),
-    fontWeight: "600",
-    color: TEXT_DARK,
-  },
+  rowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  rowLabel: { fontSize: fs(14), fontWeight: "600", color: TEXT_DARK },
 
-  // Titre section
+  // Langue
+  langBlock: { marginBottom: Spacing.lg },
+  langChips: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+    paddingLeft: scale(36),
+  },
+  langChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: scale(6),
+    borderRadius: Radius.pill,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    backgroundColor: "#F8F9FB",
+  },
+  langChipActive: { backgroundColor: BLUE, borderColor: BLUE },
+  langChipText: { fontSize: fs(13), fontWeight: "600", color: TEXT_MUTED },
+  langChipTextActive: { color: "#fff" },
+
+  // Section nav
   sectionTitle: {
     fontSize: fs(11),
     fontWeight: "700",
@@ -805,11 +802,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: Spacing.md,
   },
-
-  // Navigation
-  navList: {
-    gap: 2,
-  },
+  navList: { gap: 2 },
   navRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -823,12 +816,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  navLabel: {
-    flex: 1,
-    fontSize: fs(14),
-    fontWeight: "600",
-    color: TEXT_DARK,
-  },
+  navLabel: { flex: 1, fontSize: fs(14), fontWeight: "600", color: TEXT_DARK },
 
   // Déconnexion
   logoutBtn: {
@@ -840,9 +828,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: BORDER,
   },
-  logoutText: {
-    fontSize: fs(14),
-    fontWeight: "700",
-    color: RED,
-  },
+  logoutText: { fontSize: fs(14), fontWeight: "700", color: RED },
 });

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { getClients, loadFavorites } from "../../redux/slices/clientSlice";
 import { Colors, Typography, Spacing } from "../../constants/Theme";
 import { scale, fs } from "../../utils/responsive";
@@ -19,24 +20,22 @@ import ScreenBackground from "../../components/common/ScreenBackground";
 import SearchInput from "../../components/common/SearchInput";
 import ClientListItem from "../../components/common/ClientListItem";
 import BottomFade from "../../components/common/Bottomfade";
-import { useFocusEffect } from "@react-navigation/native";
-import { loadUser } from "../../redux/slices/authSlice";
 
 const TAB_BAR_HEIGHT = scale(58) + scale(20);
 
 const ClientListScreen = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
+
   const { clients, favorites, loading, error } = useSelector(
     (state) => state.clients,
   );
   const userData = useSelector((state) => state.auth.user);
-  const { isServerReachable } = useSelector((state) => state.offline);
 
   const [activeTab, setActiveTab] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
 
   const loadClients = useCallback(async () => {
-    // userData peut être undefined au retour — on vérifie avant
     const grp = userData?.grp;
     if (!grp) return;
     await dispatch(getClients({ grpVendeur: grp }));
@@ -82,11 +81,11 @@ const ClientListScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.titleRow}>
-        <Text style={styles.title}>Clients</Text>
+        <Text style={styles.title}>{t("clients.title")}</Text>
       </View>
 
       <SearchInput
-        placeholder="Rechercher un client..."
+        placeholder={t("clients.searchPlaceholder")}
         onPress={() => navigation.navigate("ClientPicker")}
         showChevron
       />
@@ -102,9 +101,10 @@ const ClientListScreen = ({ navigation }) => {
               activeTab === "all" && styles.tabTextActive,
             ]}
           >
-            Tous les clients
+            {t("clients.allClients")}
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={[styles.tab, activeTab === "favorites" && styles.tabActive]}
           onPress={() => setActiveTab("favorites")}
@@ -115,7 +115,7 @@ const ClientListScreen = ({ navigation }) => {
               activeTab === "favorites" && styles.tabTextActive,
             ]}
           >
-            Favoris ({favorites.length})
+            {t("clients.favorites")} ({favorites.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -155,7 +155,7 @@ const ClientListScreen = ({ navigation }) => {
                 size={scale(40)}
                 color={Colors.textMuted}
               />
-              <Text style={styles.emptyText}>Aucun client trouvé</Text>
+              <Text style={styles.emptyText}>{t("clients.noResults")}</Text>
             </View>
           )
         }

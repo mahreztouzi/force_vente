@@ -1,0 +1,79 @@
+{
+  "common": {
+    "back": "رجوع",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "search": "بحث",
+    "loading": "جاري التحميل...",
+    "menu": "القائمة",
+    "logout": "تسجيل الخروج",
+    "logoutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+    "yes": "نعم",
+    "pendingSync": "في انتظار المزامنة"
+  },
+  "home": {
+    "searchPlaceholder": "البحث عن المنتجات...",
+    "noResults": "لم يتم العثور على أي منتج",
+    "all": "الكل",
+    "loadError": "حدث خطأ أثناء تحميل المنتجات."
+  },
+  "client": {
+    "title": "العملاء",
+    "balance": "رصيد العميل",
+    "address": "عنوان العميل",
+    "newOrder": "طلب جديد",
+    "newDelivery": "تسليم جديد",
+    "call": "اتصال",
+    "message": "رسالة",
+    "email": "بريد",
+    "favorites": "مفضلة",
+    "selectReturnReason": "اختر سبب الإرجاع",
+    "code": "رمز",
+    "unavailablePhone": "رقم الهاتف غير متوفر",
+    "unavailableEmail": "البريد الإلكتروني غير متوفر",
+    "newOffer": "عرض جديد",
+    "newOfferSub": "إنشاء عرض جديد",
+    "returnOrder": "طلب إرجاع",
+    "returnOrderSub": "إرجاع المقالات",
+    "newDeliverySub": "إنشاء تسليم",
+    "newPayment": "تحصيل جديد",
+    "newPaymentSub": "تحصيل دفعة",
+    "historyDeliveries": "سجل التسليمات",
+    "historyDeliveriesSub": "عرض التسليمات",
+    "historyOffers": "سجل العروض",
+    "historyOffersSub": "عرض العروض",
+    "historyOrders": "سجل الطلبات",
+    "historyOrdersSub": "عرض الطلبات"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "french": "Français",
+    "arabic": "العربية"
+  },
+  "nav": {
+    "other": "تنقل آخر",
+    "reception": "استقبال جديد",
+    "encaissement": "تحصيل جديد"
+  },
+  "tabs": {
+    "home": "الرئيسية",
+    "clients": "العملاء",
+    "cart": "السلة",
+    "menu": "القائمة"
+  },
+  "clients": {
+    "title": "العملاء",
+    "searchPlaceholder": "البحث عن عميل...",
+    "allClients": "كل العملاء",
+    "favorites": "المفضلة",
+    "noResults": "لم يتم العثور على عميل",
+    "error": "حدث خطأ",
+    "noPhone": "لا رقم",
+    "noPhoneTitle": "لا يوجد رقم",
+    "noPhoneMsg": "لا يوجد رقم هاتف مسجل لهذا العميل.",
+    "call": "اتصال",
+    "message": "رسالة"
+  }
+}
