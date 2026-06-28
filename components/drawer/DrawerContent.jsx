@@ -421,8 +421,16 @@
 //   },
 // });
 
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Modal,
+  TouchableWithoutFeedback,
+} from "react-native";
 import {
   Ionicons,
   MaterialCommunityIcons,
@@ -449,6 +457,19 @@ const DrawerContent = ({ onClose }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage } = useAppLanguage();
+  const langBtnRef = useRef(null);
+  const [showLangPicker, setShowLangPicker] = useState(false);
+  const [langDropdownPos, setLangDropdownPos] = useState({ top: 0, right: 0 });
+
+  const openLangPicker = () => {
+    langBtnRef.current?.measure((_x, _y, w, h, px, py) => {
+      setLangDropdownPos({
+        top: py + h + scale(12) - scale(56),
+        right: Spacing.lg,
+      });
+      setShowLangPicker(true);
+    });
+  };
 
   const userData = useSelector((state) => state.auth.user);
   const { totalMontant } = useSelector((state) => state.offline);
@@ -606,7 +627,12 @@ const DrawerContent = ({ onClose }) => {
       </TouchableOpacity>
 
       {/* Langue */}
-      <View style={styles.langBlock}>
+      <TouchableOpacity
+        ref={langBtnRef}
+        style={styles.langBlock}
+        onPress={openLangPicker}
+        activeOpacity={0.6}
+      >
         <View style={styles.rowLeft}>
           <MaterialCommunityIcons
             name="translate"
@@ -615,29 +641,68 @@ const DrawerContent = ({ onClose }) => {
           />
           <Text style={styles.rowLabel}>{t("settings.language")}</Text>
         </View>
-        <View style={styles.langChips}>
-          {LANGUAGES.map((lang) => (
-            <TouchableOpacity
-              key={lang.code}
-              style={[
-                styles.langChip,
-                currentLanguage === lang.code && styles.langChipActive,
-              ]}
-              onPress={() => changeLanguage(lang.code)}
-              activeOpacity={0.7}
-            >
-              <Text
+        <View style={styles.rowLeft}>
+          <Text style={styles.currentLangText}>
+            {LANGUAGES.find((l) => l.code === currentLanguage)?.label}
+          </Text>
+          <MaterialCommunityIcons
+            name={showLangPicker ? "chevron-up" : "chevron-down"}
+            size={scale(18)}
+            color={TEXT_MUTED}
+          />
+        </View>
+      </TouchableOpacity>
+
+      <Modal
+        visible={showLangPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLangPicker(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowLangPicker(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View
                 style={[
-                  styles.langChipText,
-                  currentLanguage === lang.code && styles.langChipTextActive,
+                  styles.langDropdown,
+                  { top: langDropdownPos.top, right: langDropdownPos.right },
                 ]}
               >
-                {lang.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
+                {LANGUAGES.map((lang) => {
+                  const active = currentLanguage === lang.code;
+                  return (
+                    <TouchableOpacity
+                      key={lang.code}
+                      style={styles.langOption}
+                      onPress={() => {
+                        changeLanguage(lang.code);
+                        setShowLangPicker(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.langOptionText,
+                          active && styles.langOptionTextActive,
+                        ]}
+                      >
+                        {lang.label}
+                      </Text>
+                      {active && (
+                        <MaterialCommunityIcons
+                          name="check"
+                          size={scale(14)}
+                          color={BLUE}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       <View style={styles.separator} />
 
@@ -774,25 +839,53 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: fs(14), fontWeight: "600", color: TEXT_DARK },
 
   // Langue
-  langBlock: { marginBottom: Spacing.lg },
-  langChips: {
+  langBlock: {
     flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-    paddingLeft: scale(36),
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
-  langChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: scale(6),
-    borderRadius: Radius.pill,
-    borderWidth: 1.5,
+  currentLangText: {
+    fontSize: fs(13),
+    fontWeight: "600",
+    color: TEXT_MUTED,
+    marginRight: Spacing.xs,
+  },
+  modalOverlay: { flex: 1 },
+  langDropdown: {
+    position: "absolute",
+    backgroundColor: "#fff",
+    borderRadius: Radius.md,
+    paddingVertical: scale(4),
+    minWidth: scale(140),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
     borderColor: BORDER,
-    backgroundColor: "#F8F9FB",
   },
-  langChipActive: { backgroundColor: BLUE, borderColor: BLUE },
-  langChipText: { fontSize: fs(13), fontWeight: "600", color: TEXT_MUTED },
-  langChipTextActive: { color: "#fff" },
-
+  langOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: scale(10),
+    marginHorizontal: scale(4),
+    marginVertical: scale(1),
+    borderRadius: Radius.sm,
+  },
+  langOptionText: {
+    fontSize: fs(14),
+    fontWeight: "500",
+    color: TEXT_DARK,
+  },
+  langOptionTextActive: {
+    color: BLUE,
+    fontWeight: "700",
+  },
   // Section nav
   sectionTitle: {
     fontSize: fs(11),

@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   BackHandler,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -43,6 +44,7 @@ const TEXT_MUTED = "#6B7280";
 const BORDER = "#E5E7EB";
 
 const CreateLivraisonScreen = ({ route }) => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const { order, client } = route.params;
@@ -172,11 +174,20 @@ const CreateLivraisonScreen = ({ route }) => {
       : stockItem?.AvailableStock || 0;
 
     if (isNaN(qte) || qte <= 0)
-      return Alert.alert("Erreur", "Quantité invalide");
+      return Alert.alert(
+        t("common.error") || "Erreur",
+        t("livraison.errorInvalid"),
+      );
     if (qte > selectedArticle.qteRestante)
-      return Alert.alert("Erreur", "Dépasse la quantité restante");
+      return Alert.alert(
+        t("common.error") || "Erreur",
+        t("livraison.errorExceedsRemaining"),
+      );
     if (qte > stockQty)
-      return Alert.alert("Erreur", "Dépasse le stock disponible");
+      return Alert.alert(
+        t("common.error") || "Erreur",
+        t("livraison.errorExceedsStock"),
+      );
 
     setLivraisonItems((prev) =>
       prev.map((item) =>
@@ -201,8 +212,7 @@ const CreateLivraisonScreen = ({ route }) => {
   };
 
   const handleSelectAll = () => {
-    if (loadingStocks)
-      return Alert.alert("", "Veuillez attendre le chargement des stocks");
+    if (loadingStocks) return Alert.alert("", t("livraison.waitStock"));
     setLivraisonItems((prev) =>
       prev.map((item) => {
         const stockItem = stockInfo[item.id];
@@ -219,7 +229,10 @@ const CreateLivraisonScreen = ({ route }) => {
   const handleSaveLivraison = async () => {
     const itemsToDeliver = livraisonItems.filter((i) => i.qteALivrer > 0);
     if (!itemsToDeliver.length)
-      return Alert.alert("Erreur", "Sélectionnez au moins un article");
+      return Alert.alert(
+        t("common.error") || "Erreur",
+        t("livraison.errorSelectOne"),
+      );
 
     const livraisonData = {
       to_DeliveryDocumentItem: {
@@ -247,13 +260,16 @@ const CreateLivraisonScreen = ({ route }) => {
         if (result.payload.offline) dispatch(loadOfflineLivraisons(client));
       } else {
         Alert.alert(
-          "Erreur",
+          t("common.error") || "Erreur",
           result.payload?.steps?.creation?.error ||
-            "Erreur lors de la livraison",
+            t("livraison.errorDelivery"),
         );
       }
     } catch {
-      Alert.alert("Erreur", "Une erreur inattendue s'est produite");
+      Alert.alert(
+        t("common.error") || "Erreur",
+        t("livraison.errorUnexpected"),
+      );
       processModalRef.current?.close();
     } finally {
       if (isServerReachable) {
@@ -322,7 +338,7 @@ const CreateLivraisonScreen = ({ route }) => {
       });
       setTimeout(() => dispatch(resetDeliveryProcess()), 500);
     } catch {
-      Alert.alert("Erreur", "Impossible d'ouvrir le PDF");
+      Alert.alert(t("common.error") || "Erreur", t("livraison.errorPdf"));
     }
   };
 
@@ -360,7 +376,7 @@ const CreateLivraisonScreen = ({ route }) => {
         >
           <MaterialIcons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nouvelle Livraison</Text>
+        <Text style={styles.headerTitle}>{t("livraison.newDelivery")}</Text>
         <View style={{ width: scale(36) }} />
       </View>
 
@@ -395,7 +411,9 @@ const CreateLivraisonScreen = ({ route }) => {
       <View style={styles.listSection}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionLeft}>
-            <Text style={styles.sectionTitle}>Articles à livrer</Text>
+            <Text style={styles.sectionTitle}>
+              {t("livraison.articlesToDeliver")}
+            </Text>
             <View style={styles.countBadge}>
               <Text style={styles.countText}>
                 {selectedCount} / {livraisonItems.length}
@@ -408,7 +426,7 @@ const CreateLivraisonScreen = ({ route }) => {
             disabled={loadingStocks}
           >
             <MaterialIcons name="select-all" size={scale(16)} color={BLUE} />
-            <Text style={styles.selectAllText}>Tout sélectionner</Text>
+            <Text style={styles.selectAllText}>{t("livraison.selectAll")}</Text>
           </TouchableOpacity>
         </View>
 
@@ -419,9 +437,9 @@ const CreateLivraisonScreen = ({ route }) => {
               size={scale(48)}
               color="#E0E0E0"
             />
-            <Text style={styles.emptyText}>Aucun article à livrer</Text>
+            <Text style={styles.emptyText}>{t("livraison.noArticles")}</Text>
             <Text style={styles.emptySubtext}>
-              Tous les articles ont déjà été livrés
+              {t("livraison.noArticlesSub")}
             </Text>
           </View>
         ) : (
@@ -476,10 +494,10 @@ const CreateLivraisonScreen = ({ route }) => {
           )}
           <Text style={styles.saveBtnText}>
             {livraisonLoading
-              ? "Enregistrement…"
+              ? t("livraison.creating")
               : livraisonSuccess
-                ? "Livraison créée"
-                : "Créer la livraison"}
+                ? t("livraison.created")
+                : t("livraison.createDelivery")}
           </Text>
         </TouchableOpacity>
       </View>

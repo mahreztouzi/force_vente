@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   BackHandler,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Ionicons,
@@ -38,7 +39,6 @@ import { Spacing, Radius } from "../../../constants/Theme";
 import ScreenBackground from "../../../components/common/ScreenBackground";
 import PriceDisplay from "../../../components/common/Pricedisplay";
 import ArticleCard from "../../../components/common/commande/Articlecard";
-// import ArticleCard from "../../../components/common/commande/ArticleCard";
 
 const BLUE = "#03A9F4";
 const GREEN = "#4CAF50";
@@ -50,6 +50,7 @@ const BORDER = "#E5E7EB";
 const FOOTER_HEIGHT = scale(140);
 
 const OrderReturnScreen = ({ route }) => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const { client, motif } = route.params;
   const isRetour = !!motif;
@@ -95,20 +96,16 @@ const OrderReturnScreen = ({ route }) => {
       if (orderSuccess) return true;
 
       if (commandeItems.length > 0 && !orderSuccess) {
-        Alert.alert(
-          "Quitter sans sauvegarder ?",
-          "Vous avez des articles dans votre commande. Voulez-vous vraiment quitter sans sauvegarder ?",
-          [
-            { text: "Rester", style: "cancel" },
-            {
-              text: "Quitter",
-              onPress: () => {
-                dispatch(resetOrderState());
-                navigation.goBack();
-              },
+        Alert.alert(t("order.leaveTitle"), t("order.leaveMsg"), [
+          { text: t("order.stay"), style: "cancel" },
+          {
+            text: t("order.leave"),
+            onPress: () => {
+              dispatch(resetOrderState());
+              navigation.goBack();
             },
-          ],
-        );
+          },
+        ]);
         return true;
       }
       dispatch(resetOrderState());
@@ -197,18 +194,18 @@ const OrderReturnScreen = ({ route }) => {
     const disc = parseFloat(discount);
 
     if (isNaN(qte) || qte <= 0) {
-      Alert.alert("Erreur", "Veuillez entrer une quantité valide");
+      Alert.alert("Erreur", t("order.errorQty"));
       return;
     }
 
     const isProduitGererParLot = selectedArticle?.gerer_par_lot === true;
     if (isRetour && isProduitGererParLot && !batch.trim()) {
-      Alert.alert("Erreur", "Veuillez renseigner le numéro de lot");
+      Alert.alert("Erreur", t("order.errorBatch"));
       return;
     }
 
     if (isNaN(disc) || disc < 0 || disc > 100) {
-      Alert.alert("Erreur", "Veuillez entrer une remise valide (0-100%)");
+      Alert.alert("Erreur", t("order.errorDiscount"));
       return;
     }
 
@@ -262,10 +259,7 @@ const OrderReturnScreen = ({ route }) => {
   // ── Sauvegarde ─────────────────────────────
   const handleSaveCommande = async () => {
     if (commandeItems.length === 0) {
-      Alert.alert(
-        "Erreur",
-        "Veuillez ajouter au moins un article à la commande",
-      );
+      Alert.alert("Erreur", t("order.errorEmpty"));
       return;
     }
 
@@ -343,10 +337,7 @@ const OrderReturnScreen = ({ route }) => {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(fileUri);
         } else {
-          Alert.alert(
-            "Erreur",
-            "Le partage de fichiers n'est pas disponible sur cet appareil",
-          );
+          Alert.alert("Erreur", t("order.shareError"));
         }
       };
       reader.readAsDataURL(
@@ -355,8 +346,7 @@ const OrderReturnScreen = ({ route }) => {
       printModalizeRef.current?.close();
       cleanupAndNavigateBack();
     } catch (error) {
-      console.error("Erreur lors de l'impression:", error);
-      Alert.alert("Erreur", "Impossible d'imprimer le document");
+      Alert.alert("Erreur", t("order.printError"));
     }
   };
 
@@ -366,7 +356,7 @@ const OrderReturnScreen = ({ route }) => {
   };
 
   // ── Render ─────────────────────────────────
-  const screenTitle = isRetour ? "Commande de Retour" : "Nouvelle Commande";
+  const screenTitle = isRetour ? t("order.returnOrder") : t("order.newOrder");
 
   const renderCommandeItem = ({ item, index }) => (
     <ArticleCard
@@ -421,7 +411,7 @@ const OrderReturnScreen = ({ route }) => {
       {/* Liste articles */}
       <View style={styles.listSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Articles</Text>
+          <Text style={styles.sectionTitle}>{t("order.articles")}</Text>
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{commandeItems.length}</Text>
           </View>
@@ -430,10 +420,8 @@ const OrderReturnScreen = ({ route }) => {
         {commandeItems.length === 0 ? (
           <View style={styles.emptyList}>
             <MaterialIcons name="assignment" size={scale(44)} color="#E0E0E0" />
-            <Text style={styles.emptyText}>Aucun article ajouté</Text>
-            <Text style={styles.emptySubtext}>
-              Appuyez sur + pour ajouter des articles
-            </Text>
+            <Text style={styles.emptyText}>{t("order.noArticles")}</Text>
+            <Text style={styles.emptySubtext}>{t("order.noArticlesSub")}</Text>
           </View>
         ) : (
           <FlatList
@@ -464,7 +452,7 @@ const OrderReturnScreen = ({ route }) => {
         )}
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalLabel}>{t("order.total")}</Text>
           <PriceDisplay amount={totalHT} intSize={20} decSize={13} />
         </View>
 
@@ -487,10 +475,10 @@ const OrderReturnScreen = ({ route }) => {
           )}
           <Text style={styles.saveBtnText}>
             {orderLoading
-              ? "Enregistrement..."
+              ? t("order.saving")
               : orderSuccess
-                ? "Enregistré"
-                : "Enregistrer"}
+                ? t("order.saved")
+                : t("order.save")}
           </Text>
         </TouchableOpacity>
       </View>

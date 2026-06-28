@@ -18,6 +18,7 @@ import {
   BackHandler,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import {
   Ionicons,
   MaterialIcons,
@@ -44,6 +45,7 @@ const BORDER = "#E5E7EB";
 
 const LivraisonScreen = ({ route }) => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { client } = route.params;
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.auth.user);
@@ -233,7 +235,7 @@ const LivraisonScreen = ({ route }) => {
           <Ionicons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Livraisons</Text>
+          <Text style={styles.headerTitle}>{t("livraison.title")}</Text>
           {client?.name1 && (
             <Text style={styles.headerSubtitle} numberOfLines={1}>
               {client.name1}
@@ -247,7 +249,7 @@ const LivraisonScreen = ({ route }) => {
       {loading ? (
         <View style={styles.centerWrap}>
           <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.loaderText}>Chargement des commandes...</Text>
+          <Text style={styles.loaderText}>{t("livraison.loading")}</Text>
         </View>
       ) : error ? (
         <View style={styles.centerWrap}>
@@ -256,14 +258,17 @@ const LivraisonScreen = ({ route }) => {
             size={scale(44)}
             color="#e53935"
           />
-          <Text style={styles.errorText}>Erreur : {error}</Text>
+          <Text style={styles.errorText}>
+            {t("livraison.error")}
+            {error}
+          </Text>
           <TouchableOpacity
             style={styles.retryBtn}
             onPress={() =>
               dispatch(getCommandesApprouves({ user: userData?.code }))
             }
           >
-            <Text style={styles.retryText}>Réessayer</Text>
+            <Text style={styles.retryText}>{t("livraison.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : commandesDistinctes.length === 0 ? (
@@ -273,14 +278,12 @@ const LivraisonScreen = ({ route }) => {
             size={scale(56)}
             color="#E0E0E0"
           />
-          <Text style={styles.emptyText}>
-            Aucune commande en attente de livraison
-          </Text>
+          <Text style={styles.emptyText}>{t("livraison.empty")}</Text>
         </View>
       ) : (
         <>
           <Text style={styles.headerTitleList}>
-            Choisissez une commande à livrer :
+            {t("livraison.chooseOrder")}
           </Text>
           <FlatList
             data={commandesDistinctes}
@@ -337,7 +340,7 @@ const LivraisonScreen = ({ route }) => {
             <View style={styles.modalSubRow}>
               {selectedCommande.vgbel && (
                 <Text style={styles.modalRef}>
-                  Référence : {selectedCommande.vgbel}
+                  {t("livraison.reference")} : {selectedCommande.vgbel}
                 </Text>
               )}
               <Text style={styles.modalDate}>{selectedCommande.erdat}</Text>
@@ -345,12 +348,12 @@ const LivraisonScreen = ({ route }) => {
 
             <View style={styles.articlesBlock}>
               <Text style={styles.articlesTitle}>
-                {articlesCommande.length} article(s)
+                {articlesCommande.length} {t("livraison.articlesTitle")}
               </Text>
 
               <View style={styles.tableHeader}>
                 <Text style={[styles.tableHeaderText, { flex: 4 }]}>
-                  Code / Désignation
+                  {t("livraison.codeDesignation")}
                 </Text>
                 <Text
                   style={[
@@ -359,7 +362,7 @@ const LivraisonScreen = ({ route }) => {
                     { flex: 2 },
                   ]}
                 >
-                  Qté Cmd
+                  {t("livraison.qtyOrdered")}
                 </Text>
                 <Text
                   style={[
@@ -368,7 +371,7 @@ const LivraisonScreen = ({ route }) => {
                     { flex: 2 },
                   ]}
                 >
-                  Qté Rest.
+                  {t("livraison.qtyRemaining")}
                 </Text>
               </View>
 
@@ -391,7 +394,9 @@ const LivraisonScreen = ({ route }) => {
                   size={scale(18)}
                   color={BLUE}
                 />
-                <Text style={styles.deliverBtnText}>Livrer</Text>
+                <Text style={styles.deliverBtnText}>
+                  {t("livraison.deliver")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -16,6 +16,7 @@ import {
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getArticles } from "../../../redux/slices/articleSlice";
@@ -57,6 +58,7 @@ const BORDER = "#E5E7EB";
  */
 const QuotationScreen = ({ route }) => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { client, motif } = route.params;
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.auth.user);
@@ -96,20 +98,16 @@ const QuotationScreen = ({ route }) => {
       if (orderSuccess) return true;
 
       if (commandeItems.length > 0 && !orderSuccess) {
-        Alert.alert(
-          "Quitter sans sauvegarder ?",
-          "Vous avez des articles dans votre commande. Voulez-vous vraiment quitter sans sauvegarder ?",
-          [
-            { text: "Rester", style: "cancel" },
-            {
-              text: "Quitter",
-              onPress: () => {
-                dispatch(resetQuotationState());
-                navigation.goBack();
-              },
+        Alert.alert(t("order.leaveTitle"), t("order.leaveMsg"), [
+          { text: t("order.stay"), style: "cancel" },
+          {
+            text: t("order.leave"),
+            onPress: () => {
+              dispatch(resetQuotationState());
+              navigation.goBack();
             },
-          ],
-        );
+          },
+        ]);
         return true;
       }
 
@@ -199,11 +197,11 @@ const QuotationScreen = ({ route }) => {
     const disc = parseFloat(discount);
 
     if (isNaN(qte) || qte <= 0) {
-      Alert.alert("Erreur", "Veuillez entrer une quantité valide");
+      Alert.alert("Erreur", t("order.errorQty"));
       return;
     }
     if (isNaN(disc) || disc < 0 || disc > 100) {
-      Alert.alert("Erreur", "Veuillez entrer une remise valide (0-100%)");
+      Alert.alert("Erreur", t("order.errorDiscount"));
       return;
     }
 
@@ -235,10 +233,10 @@ const QuotationScreen = ({ route }) => {
   }, [handleQuantityConfirm]);
 
   const handleRemoveItem = (index) => {
-    Alert.alert("Confirmation", "Voulez-vous supprimer cet article ?", [
-      { text: "Annuler", style: "cancel" },
+    Alert.alert(t("order.deleteTitle"), t("order.deleteMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Supprimer",
+        text: t("common.delete"),
         onPress: () => {
           const newItems = [...commandeItems];
           newItems.splice(index, 1);
@@ -260,10 +258,7 @@ const QuotationScreen = ({ route }) => {
 
   const handleSaveCommande = async () => {
     if (commandeItems.length === 0) {
-      Alert.alert(
-        "Erreur",
-        "Veuillez ajouter au moins un article à la commande",
-      );
+      Alert.alert("Erreur", t("order.errorEmpty"));
       return;
     }
 
@@ -337,10 +332,7 @@ const QuotationScreen = ({ route }) => {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(fileUri);
         } else {
-          Alert.alert(
-            "Erreur",
-            "Le partage de fichiers n'est pas disponible sur cet appareil",
-          );
+          Alert.alert("Erreur", t("order.shareError"));
         }
       };
       reader.readAsDataURL(
@@ -350,7 +342,7 @@ const QuotationScreen = ({ route }) => {
       cleanupAndNavigateBack();
     } catch (error) {
       console.error("Erreur lors de l'impression:", error);
-      Alert.alert("Erreur", "Impossible d'imprimer le document");
+      Alert.alert("Erreur", t("order.printError"));
     }
   };
 
@@ -368,7 +360,7 @@ const QuotationScreen = ({ route }) => {
   );
 
   const scrollY = useRef(new Animated.Value(0)).current;
-  const screenTitle = motif ? "Commande de Retour" : "Nouvelle Offre";
+  const screenTitle = motif ? t("order.returnOrder") : t("order.newOffer");
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -408,7 +400,7 @@ const QuotationScreen = ({ route }) => {
       {/* Liste des articles */}
       <View style={styles.listSection}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Articles</Text>
+          <Text style={styles.sectionTitle}>{t("order.articles")}</Text>
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{commandeItems.length}</Text>
           </View>
@@ -417,10 +409,8 @@ const QuotationScreen = ({ route }) => {
         {commandeItems.length === 0 ? (
           <View style={styles.emptyList}>
             <MaterialIcons name="assignment" size={scale(44)} color="#E0E0E0" />
-            <Text style={styles.emptyText}>Aucun article ajouté</Text>
-            <Text style={styles.emptySubtext}>
-              Appuyez sur + pour ajouter des articles
-            </Text>
+            <Text style={styles.emptyText}>{t("order.noArticles")}</Text>
+            <Text style={styles.emptySubtext}>{t("order.noArticlesSub")}</Text>
           </View>
         ) : (
           <FlatList
@@ -453,7 +443,7 @@ const QuotationScreen = ({ route }) => {
         )}
 
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalLabel}>{t("order.total")}</Text>
           <PriceDisplay amount={totalHT} intSize={20} decSize={13} />
         </View>
 
@@ -476,10 +466,10 @@ const QuotationScreen = ({ route }) => {
           )}
           <Text style={styles.saveBtnText}>
             {orderLoading
-              ? "Enregistrement..."
+              ? t("order.saving")
               : orderSuccess
-                ? "Enregistré"
-                : "Enregistrer"}
+                ? t("order.saved")
+                : t("order.save")}
           </Text>
         </TouchableOpacity>
       </View>

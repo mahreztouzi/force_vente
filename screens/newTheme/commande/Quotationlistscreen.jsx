@@ -18,6 +18,7 @@ import {
   RefreshControl,
   BackHandler,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
@@ -68,50 +69,12 @@ const MONTHS = [
   "Déc",
 ];
 
-const STATUS_OPTIONS = [
-  { key: "all", label: "Tous", color: TEXT_MUTED },
-  { key: "initial", label: "Initial", color: "#3B82F6" },
-  { key: "encours", label: "En cours", color: "#10B981" },
-  { key: "termine", label: "Terminé", color: "#8B5CF6" },
-];
-
-// ─── Utilitaires ──────────────────────────────────────────────────────────────
-const getMonthDateRange = (year, month) => {
-  const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
-  const pad = (n) => String(n).padStart(2, "0");
-  return {
-    startDateFormatted: `${year}-${pad(month + 1)}-01`,
-    endDateFormatted: `${year}-${pad(month + 1)}-${pad(end.getUTCDate())}`,
-  };
-};
-
-const convertirDateSAP = (dateSAP) => {
-  const m = dateSAP.match(/\/Date\((\d+)\)\//);
-  if (!m) return "Date invalide";
-  return new Date(parseInt(m[1])).toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-};
-
-const STATUT_MAPPING = {
-  initial: "Initial",
-  encours: "En cours",
-  termine: "Terminé",
-};
-
-const STATUS_COLORS = {
-  initial: "#3B82F6",
-  encours: "#10B981",
-  termine: "#8B5CF6",
-};
-
 // ─── Écran ────────────────────────────────────────────────────────────────────
 const QuotationListScreen = ({ route }) => {
   const navigation = useNavigation();
   const { client } = route.params;
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const userData = useSelector((s) => s.auth.user);
@@ -154,6 +117,45 @@ const QuotationListScreen = ({ route }) => {
   const articlesModalRef = useRef(null);
   const flatListRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const STATUS_OPTIONS = [
+    { key: "all", label: t("order.statusAll"), color: TEXT_MUTED },
+    { key: "initial", label: t("order.statusInitial"), color: "#3B82F6" },
+    { key: "encours", label: t("order.statusEncours"), color: "#10B981" },
+    { key: "termine", label: t("order.statusTermine"), color: "#8B5CF6" },
+  ];
+
+  // ─── Utilitaires ──────────────────────────────────────────────────────────────
+  const getMonthDateRange = (year, month) => {
+    const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+    const pad = (n) => String(n).padStart(2, "0");
+    return {
+      startDateFormatted: `${year}-${pad(month + 1)}-01`,
+      endDateFormatted: `${year}-${pad(month + 1)}-${pad(end.getUTCDate())}`,
+    };
+  };
+
+  const convertirDateSAP = (dateSAP) => {
+    const m = dateSAP.match(/\/Date\((\d+)\)\//);
+    if (!m) return "Date invalide";
+    return new Date(parseInt(m[1])).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const STATUT_MAPPING = {
+    initial: t("order.statusInitial"),
+    encours: t("order.statusEncours"),
+    termine: t("order.statusTermine"),
+  };
+
+  const STATUS_COLORS = {
+    initial: "#3B82F6",
+    encours: "#10B981",
+    termine: "#8B5CF6",
+  };
 
   // ── Back handler ─────────────────────────────
   useEffect(() => {
@@ -313,26 +315,28 @@ const QuotationListScreen = ({ route }) => {
 
   const handleDelete = (article) => {
     if (article.qte_restante < article.lsmeng) {
-      Alert.alert(
-        "Action impossible",
-        "Cet article est déjà livré ou en cours de livraison.",
-      );
+      Alert.alert(t("order.impossible"), t("order.alreadyDelivered"));
       return;
     }
-    Alert.alert("Confirmer", `Supprimer "${article.designation}" ?`, [
-      { text: "Annuler", style: "cancel" },
-      {
-        text: "Supprimer",
-        style: "destructive",
-        onPress: () =>
-          dispatch(
-            deleteQuotationItem({
-              commande: selectedQuotation.cmd,
-              itemNumber: article.posnr,
-            }),
-          ),
-      },
-    ]);
+    Alert.alert(
+      t("order.confirmDelete"),
+      t("order.confirmDeleteMsg", { name: article.designation }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+
+          style: "destructive",
+          onPress: () =>
+            dispatch(
+              deleteQuotationItem({
+                commande: selectedQuotation.cmd,
+                itemNumber: article.posnr,
+              }),
+            ),
+        },
+      ],
+    );
   };
 
   const handleAddItem = () => {
@@ -357,8 +361,8 @@ const QuotationListScreen = ({ route }) => {
     const qte = parseFloat(quantity);
     if (isNaN(qte) || qte < minQuantity) {
       Alert.alert(
-        "Quantité invalide",
-        `La quantité doit être ≥ ${minQuantity}.`,
+        t("order.invalidQty"),
+        t("order.invalidQtyMsg", { min: minQuantity }),
       );
       return;
     }
@@ -381,10 +385,10 @@ const QuotationListScreen = ({ route }) => {
         quantityModalRef.current?.close();
         setSelectedNewArticle(null);
       } else {
-        Alert.alert("Erreur", "L'opération a échoué.");
+        Alert.alert("Erreur", t("order.opFailed"));
       }
     } catch {
-      Alert.alert("Erreur", "Une erreur s'est produite.");
+      Alert.alert("Erreur", t("order.opError"));
     }
   };
 
@@ -392,11 +396,11 @@ const QuotationListScreen = ({ route }) => {
   useEffect(() => {
     if (deleteSuccess) {
       const msgs = {
-        add: "Article ajouté.",
-        update: "Article modifié.",
-        delete: "Article supprimé.",
+        add: t("order.successAdd"),
+        update: t("order.successUpdate"),
+        delete: t("order.successDelete"),
       };
-      Alert.alert("Succès", msgs[statusOperation] || "Opération réussie.");
+      Alert.alert("Succès", msgs[statusOperation] || t("order.successDefault"));
       loadData();
       actionModalRef.current?.close();
       detailModalRef.current?.close();
@@ -428,7 +432,7 @@ const QuotationListScreen = ({ route }) => {
           <Ionicons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Mes offres</Text>
+          <Text style={styles.headerTitle}>{t("order.myOffers")}</Text>
           <Text style={styles.headerSubtitle}>
             {MONTHS[selectedMonth]} {selectedYear}
           </Text>
@@ -448,7 +452,7 @@ const QuotationListScreen = ({ route }) => {
           onYearChange={setSelectedYear}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          searchPlaceholder="Rechercher une offre..."
+          searchPlaceholder={t("order.searchOffer")}
         />
       )}
 
@@ -456,7 +460,7 @@ const QuotationListScreen = ({ route }) => {
       {loading ? (
         <View style={styles.centerWrap}>
           <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.centerText}>Chargement des offres...</Text>
+          <Text style={styles.centerText}>{t("order.loadingOffers")}</Text>
         </View>
       ) : error ? (
         <View style={styles.centerWrap}>
@@ -467,7 +471,7 @@ const QuotationListScreen = ({ route }) => {
           />
           <Text style={[styles.centerText, { color: "#DC2626" }]}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadData}>
-            <Text style={styles.retryText}>Réessayer</Text>
+            <Text style={styles.retryText}>{t("order.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : commandesFiltrees.length === 0 ? (
@@ -477,7 +481,7 @@ const QuotationListScreen = ({ route }) => {
             size={scale(56)}
             color="#E0E0E0"
           />
-          <Text style={styles.centerText}>Aucune offre trouvée</Text>
+          <Text style={styles.centerText}>{t("order.noOffers")}</Text>
         </View>
       ) : (
         <FlatList

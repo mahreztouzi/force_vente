@@ -12,6 +12,7 @@ import {
   Animated,
   BackHandler,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MaterialIcons,
@@ -56,54 +57,12 @@ const MONTHS = [
   "Déc",
 ];
 
-const STATUS_OPTIONS = [
-  { key: "all", label: "Tous", color: TEXT_MUTED },
-  { key: "initial", label: "En préparation", color: "#FF9800" },
-  { key: "sortie", label: "Expédiée", color: "#2196F3" },
-  { key: "facturé", label: "Facturée", color: "#4CAF50" },
-];
-
-// ─── Utilitaires ──────────────────────────────────────────────────────────────
-const getMonthDateRange = (year, month) => {
-  const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
-  const pad = (n) => String(n).padStart(2, "0");
-  return {
-    startDateFormatted: `${year}-${pad(month + 1)}-01`,
-    endDateFormatted: `${year}-${pad(month + 1)}-${pad(end.getUTCDate())}`,
-  };
-};
-
-const convertirDateSAP = (dateSAP) => {
-  const match = dateSAP.match(/\/Date\((\d+)\)\//);
-  if (!match) return "—";
-  return new Date(parseInt(match[1])).toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-};
-
-const getStatusColor = (s) =>
-  STATUS_OPTIONS.find((o) => o.key === s)?.color ?? TEXT_MUTED;
-const getStatusLabel = (s) =>
-  STATUS_OPTIONS.find((o) => o.key === s)?.label ?? s;
-
-const getProcessButtonConfig = (statut) => {
-  switch (statut?.toLowerCase()) {
-    case "initial":
-      return { title: "Expédier", icon: "local-shipping", show: true };
-    case "sortie":
-      return { title: "Facturer", icon: "receipt", show: true };
-    default:
-      return { show: false };
-  }
-};
-
 // ─── Écran ────────────────────────────────────────────────────────────────────
 const LivraisonsAllListScreen = ({ route }) => {
   const navigation = useNavigation();
   const { client } = route.params;
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const userData = useSelector((s) => s.auth.user);
@@ -127,6 +86,13 @@ const LivraisonsAllListScreen = ({ route }) => {
   const flatListRef = useRef(null);
   const modalizeRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const STATUS_OPTIONS = [
+    { key: "all", label: t("livraison.statusAll"), color: TEXT_MUTED },
+    { key: "initial", label: t("livraison.statusPreparing"), color: "#FF9800" },
+    { key: "sortie", label: t("livraison.statusShipped"), color: "#2196F3" },
+    { key: "facturé", label: t("livraison.statusBilled"), color: "#4CAF50" },
+  ];
 
   // ── Back handler ─────────────────────────────
   useEffect(() => {
@@ -159,7 +125,47 @@ const LivraisonsAllListScreen = ({ route }) => {
   useEffect(() => {
     loadData();
   }, [selectedMonth, selectedYear]);
+  // ─── Utilitaires ──────────────────────────────────────────────────────────────
+  const getMonthDateRange = (year, month) => {
+    const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
+    const pad = (n) => String(n).padStart(2, "0");
+    return {
+      startDateFormatted: `${year}-${pad(month + 1)}-01`,
+      endDateFormatted: `${year}-${pad(month + 1)}-${pad(end.getUTCDate())}`,
+    };
+  };
 
+  const convertirDateSAP = (dateSAP) => {
+    const match = dateSAP.match(/\/Date\((\d+)\)\//);
+    if (!match) return "—";
+    return new Date(parseInt(match[1])).toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+  const getProcessButtonConfig = (statut) => {
+    switch (statut?.toLowerCase()) {
+      case "initial":
+        return {
+          title: t("livraison.actionShip"),
+          icon: "local-shipping",
+          show: true,
+        };
+      case "sortie":
+        return {
+          title: t("livraison.actionBill"),
+          icon: "receipt",
+          show: true,
+        };
+      default:
+        return { show: false };
+    }
+  };
+  const getStatusColor = (s) =>
+    STATUS_OPTIONS.find((o) => o.key === s)?.color ?? TEXT_MUTED;
+  const getStatusLabel = (s) =>
+    STATUS_OPTIONS.find((o) => o.key === s)?.label ?? s;
   // ── Groupement & filtrage ────────────────────
   const groupLivraisons = useCallback(
     (list) => {
@@ -276,7 +282,10 @@ const LivraisonsAllListScreen = ({ route }) => {
       setIsProcessing(true);
       const connected = await isConnected();
       if (!connected) {
-        Alert.alert("Connexion requise", "Vérifiez votre connexion.");
+        Alert.alert(
+          t("livraison.connectionRequired"),
+          t("livraison.connectionMsg"),
+        );
         return;
       }
 
@@ -302,9 +311,9 @@ const LivraisonsAllListScreen = ({ route }) => {
         err?.step === "validation_sortie"
           ? err?.error?.message
           : err?.step === "facture"
-            ? err?.error || "Erreur lors de la facturation."
-            : "Une erreur est survenue.";
-      Alert.alert("Erreur", msg);
+            ? err?.error || t("livraison.errorBilling")
+            : t("livraison.errorOccurred");
+      Alert.alert(t("common.error"), msg);
     } finally {
       setIsProcessing(false);
       modalizeRef.current?.close();
@@ -330,7 +339,7 @@ const LivraisonsAllListScreen = ({ route }) => {
           <Ionicons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>Livraisons</Text>
+          <Text style={styles.headerTitle}>{t("livraison.title")}</Text>
           <Text style={styles.headerSubtitle}>
             {MONTHS[selectedMonth]} {selectedYear}
           </Text>
@@ -350,14 +359,14 @@ const LivraisonsAllListScreen = ({ route }) => {
         showMonthFilter={isServerReachable}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="Rechercher une livraison..."
+        searchPlaceholder={t("livraison.searchPlaceholder")}
       />
 
       {/* Contenu */}
       {loading ? (
         <View style={styles.centerWrap}>
           <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.centerText}>Chargement...</Text>
+          <Text style={styles.centerText}>{t("common.loading")}</Text>
         </View>
       ) : error ? (
         <View style={styles.centerWrap}>
@@ -368,7 +377,7 @@ const LivraisonsAllListScreen = ({ route }) => {
           />
           <Text style={[styles.centerText, { color: "#DC2626" }]}>{error}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={() => loadData()}>
-            <Text style={styles.retryText}>Réessayer</Text>
+            <Text style={styles.retryText}>{t("livraison.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : filteredLivraisons.length === 0 ? (
@@ -378,7 +387,7 @@ const LivraisonsAllListScreen = ({ route }) => {
             size={scale(56)}
             color="#E0E0E0"
           />
-          <Text style={styles.centerText}>Aucune livraison trouvée</Text>
+          <Text style={styles.centerText}>{t("livraison.noResults")}</Text>
         </View>
       ) : (
         <FlatList

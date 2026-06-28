@@ -16,6 +16,7 @@ import {
   MaterialCommunityIcons,
   AntDesign,
 } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { Modalize } from "react-native-modalize";
 import { useDispatch, useSelector } from "react-redux";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -48,6 +49,7 @@ const EncaissementScreen = ({ route }) => {
   const userData = useSelector((state) => state.auth.user);
   const user = userData.code;
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const actionModalizeRef = useRef(null);
   const formModalizeRef = useRef(null);
@@ -190,11 +192,11 @@ const EncaissementScreen = ({ route }) => {
       !encaissementForm.Montant ||
       parseFloat(encaissementForm.Montant) <= 0
     ) {
-      Alert.alert("Erreur", "Veuillez saisir un montant valide");
+      Alert.alert(t("common.error"), t("encaissement.errorAmount"));
       return;
     }
     if (!encaissementForm.DateEncaissement) {
-      Alert.alert("Erreur", "Veuillez sélectionner une date");
+      Alert.alert(t("common.error"), t("encaissement.errorDate"));
       return;
     }
 
@@ -216,10 +218,16 @@ const EncaissementScreen = ({ route }) => {
         formModalizeRef.current?.close();
         loadEncaissements();
         dispatch(loadAllOfflineEncaissements());
-        Alert.alert("Succès", "Encaissement créé avec succès");
+        Alert.alert(
+          t("common.success") || "Succès",
+          t("encaissement.successCreate"),
+        );
       })
       .catch((err) => {
-        Alert.alert("Erreur", err.message || "Erreur lors de la création");
+        Alert.alert(
+          t("common.error"),
+          err.message || t("encaissement.errorCreate"),
+        );
       })
       .finally(() => setIsSubmitting(false));
   };
@@ -239,15 +247,22 @@ const EncaissementScreen = ({ route }) => {
       .then(() => {
         loadEncaissements();
         dispatch(loadAllOfflineEncaissements());
-        Alert.alert("Succès", "Encaissement annulé avec succès", [
-          {
-            text: "OK",
-            onPress: () => cancelationModalizeRef.current?.close(),
-          },
-        ]);
+        Alert.alert(
+          t("common.success") || "Succès",
+          t("encaissement.successCancel"),
+          [
+            {
+              text: "OK",
+              onPress: () => cancelationModalizeRef.current?.close(),
+            },
+          ],
+        );
       })
       .catch((err) => {
-        Alert.alert("Erreur", err.message || "Erreur lors de l'annulation");
+        Alert.alert(
+          t("common.error"),
+          err.message || t("encaissement.errorCancel"),
+        );
       })
       .finally(() => setIsCancelling(false));
   };
@@ -296,10 +311,7 @@ const EncaissementScreen = ({ route }) => {
       });
     } catch (error) {
       console.error("Erreur lors de la préparation de l'impression:", error);
-      Alert.alert(
-        "Erreur",
-        "Impossible de préparer le document pour l'impression.",
-      );
+      Alert.alert(t("common.error"), t("encaissement.errorPrint"));
     }
   };
 
@@ -317,16 +329,14 @@ const EncaissementScreen = ({ route }) => {
         >
           <MaterialIcons name="arrow-back" size={scale(20)} color={TEXT_DARK} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Encaissements</Text>
+        <Text style={styles.headerTitle}>{t("encaissement.title")}</Text>
         <View style={{ width: scale(36) }} />
       </View>
 
       {encaissementsLoading ? (
         <View style={styles.centerWrap}>
           <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.loadingText}>
-            Chargement des encaissements...
-          </Text>
+          <Text style={styles.loadingText}>{t("encaissement.loading")}</Text>
         </View>
       ) : encaissementsError ? (
         <View style={styles.centerWrap}>
@@ -337,7 +347,7 @@ const EncaissementScreen = ({ route }) => {
           />
           <Text style={styles.errorText}>{encaissementsError}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadEncaissements}>
-            <Text style={styles.retryText}>Réessayer</Text>
+            <Text style={styles.retryText}>{t("encaissement.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : filteredList.length === 0 ? (
@@ -347,7 +357,7 @@ const EncaissementScreen = ({ route }) => {
             size={scale(56)}
             color="#E0E0E0"
           />
-          <Text style={styles.emptyText}>Aucun encaissement</Text>
+          <Text style={styles.emptyText}>{t("encaissement.empty")}</Text>
         </View>
       ) : (
         <FlatList
@@ -380,7 +390,7 @@ const EncaissementScreen = ({ route }) => {
         withHandle
       >
         <View style={styles.actionContainer}>
-          <Text style={styles.actionTitle}>Actions</Text>
+          <Text style={styles.actionTitle}>{t("encaissement.actions")}</Text>
 
           <TouchableOpacity
             style={styles.actionBtn}
@@ -390,7 +400,7 @@ const EncaissementScreen = ({ route }) => {
             }}
           >
             <MaterialIcons name="print" size={scale(22)} color="#4CAF50" />
-            <Text style={styles.actionText}>Imprimer le reçu</Text>
+            <Text style={styles.actionText}>{t("encaissement.print")}</Text>
           </TouchableOpacity>
 
           {isServerReachable && (
@@ -400,7 +410,7 @@ const EncaissementScreen = ({ route }) => {
             >
               <MaterialIcons name="delete" size={scale(22)} color="#F44336" />
               <Text style={[styles.actionText, styles.deleteText]}>
-                Annuler l'encaissement
+                {t("encaissement.cancel")}
               </Text>
             </TouchableOpacity>
           )}
@@ -409,7 +419,7 @@ const EncaissementScreen = ({ route }) => {
             style={styles.closeBtn}
             onPress={() => actionModalizeRef.current?.close()}
           >
-            <Text style={styles.closeText}>Annuler</Text>
+            <Text style={styles.closeText}>{t("common.cancel")}</Text>
           </TouchableOpacity>
         </View>
       </Modalize>

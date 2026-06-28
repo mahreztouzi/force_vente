@@ -11,6 +11,7 @@ import {
   Alert,
   StatusBar,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Avatar } from "react-native-elements";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -32,6 +33,7 @@ import SearchInput from "../../components/common/SearchInput";
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const userData = useSelector((state) => state.auth.user);
   const { clients } = useSelector((state) => state.clients);
   const {
@@ -67,7 +69,7 @@ const CartScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (orderSuccess) {
-      Alert.alert("Succès", "Commande créée avec succès", [
+      Alert.alert(t("cart.successTitle"), t("cart.successMsg"), [
         {
           text: "OK",
           onPress: async () => {
@@ -104,10 +106,10 @@ const CartScreen = ({ navigation }) => {
   };
 
   const handleRemove = (id) => {
-    Alert.alert("Confirmation", "Retirer cet article du panier ?", [
-      { text: "Annuler", style: "cancel" },
+    Alert.alert(t("cart.removeTitle"), t("cart.removeMsg"), [
+      { text: t("cart.removeCancel"), style: "cancel" },
       {
-        text: "Retirer",
+        text: t("cart.removeConfirm"),
         style: "destructive",
         onPress: async () => {
           const updated = await removeCartItem(id);
@@ -122,11 +124,11 @@ const CartScreen = ({ navigation }) => {
 
   const handleCreateOrder = () => {
     if (!selectedClient) {
-      Alert.alert("Erreur", "Veuillez sélectionner un client");
+      Alert.alert("Erreur", t("cart.errorNoClient"));
       return;
     }
     if (cartItems.length === 0) {
-      Alert.alert("Erreur", "Le panier est vide");
+      Alert.alert("Erreur", t("cart.errorEmpty"));
       return;
     }
 
@@ -223,18 +225,19 @@ const CartScreen = ({ navigation }) => {
           <View>
             <View style={styles.headerRow}>
               <Text style={styles.title}>
-                Panier{" "}
+                {t("cart.title")}{" "}
                 <Text style={styles.titleCount}>
-                  ({cartItems.length} articles)
+                  ({cartItems.length} {t("cart.articles")})
                 </Text>
               </Text>
             </View>
             <Text style={styles.label}>
-              Client<Text style={styles.required}>*</Text> :
+              {t("cart.clientLabel")}
+              <Text style={styles.required}>*</Text> :
             </Text>
 
             <SearchInput
-              placeholder="Sélectionner un Client..."
+              placeholder={t("cart.clientPlaceholder")}
               onPress={() =>
                 navigation.navigate("ClientPicker", {
                   onSelectClient: (client) => setSelectedClient(client),
@@ -289,7 +292,7 @@ const CartScreen = ({ navigation }) => {
                 size={scale(48)}
                 color={Colors.textMuted}
               />
-              <Text style={styles.emptyText}>Votre panier est vide</Text>
+              <Text style={styles.emptyText}>{t("cart.empty")}</Text>
             </View>
           )
         }
@@ -297,7 +300,7 @@ const CartScreen = ({ navigation }) => {
           cartItems.length > 0 ? (
             <View style={styles.totalsBlock}>
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Subtotal :</Text>
+                <Text style={styles.totalLabel}>{t("cart.subtotal")} :</Text>
                 <Text style={styles.totalValue}>
                   {subtotal.toLocaleString("fr-DZ", {
                     minimumFractionDigits: 0,
@@ -306,7 +309,7 @@ const CartScreen = ({ navigation }) => {
                 </Text>
               </View>
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabelFinal}>Total :</Text>
+                <Text style={styles.totalLabelFinal}>{t("cart.total")} :</Text>
                 <Text style={styles.totalValueFinal}>
                   {total.toLocaleString("fr-DZ", { minimumFractionDigits: 0 })}{" "}
                   DZD
@@ -330,7 +333,7 @@ const CartScreen = ({ navigation }) => {
             {orderLoading ? (
               <ActivityIndicator color={Colors.white} />
             ) : (
-              <Text style={styles.confirmText}>CRÉER LA COMMANDE</Text>
+              <Text style={styles.confirmText}>{t("cart.createOrder")}</Text>
             )}
           </TouchableOpacity>
         </View>

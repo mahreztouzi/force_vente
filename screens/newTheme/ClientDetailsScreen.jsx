@@ -360,7 +360,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               >
                 <Text style={styles.motifText}>{item.Bezei}</Text>
                 <Text style={styles.motifCode}>
-                  {`${t("clients.code")}: ${item.Augru}`}
+                  {`${t("client.code")}: ${item.Augru}`}
                 </Text>
               </TouchableOpacity>
             ))}
