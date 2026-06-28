@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.nacermahrez.expotemplatetabs'
+    namespace 'com.bi2s.fastdelivery'
     defaultConfig {
-        applicationId 'com.nacermahrez.expotemplatetabs'
+        applicationId 'com.bi2s.fastdelivery'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -1,4 +1,4 @@
-package com.nacermahrez.expotemplatetabs
+package com.bi2s.fastdelivery
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

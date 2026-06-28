@@ -1,4 +1,4 @@
-package com.nacermahrez.expotemplatetabs
+package com.bi2s.fastdelivery
 
 import android.app.Application
 import android.content.res.Configuration
