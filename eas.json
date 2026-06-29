@@ -11,10 +11,7 @@
     "preview": {
       "distribution": "internal",
       "android": {
-        "gradleCommand": ":app:assembleRelease",
-        "env": {
-          "KOTLIN_VERSION": "1.9.25"
-        }
+        "buildType": "apk"
       }
     },
     "production": {

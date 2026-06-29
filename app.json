@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/fond_blanc.png",
       "resizeMode": "contain",
@@ -24,6 +23,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
+      "edgeToEdgeEnabled": true,
       "package": "com.bi2s.fastdelivery",
       "usesCleartextTraffic": true,
       "permissions": [
@@ -50,7 +50,9 @@
           "bluetoothAlwaysPermission": "Cette app utilise le Bluetooth pour se connecter aux appareils."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {
