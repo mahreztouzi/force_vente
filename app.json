@@ -42,9 +42,6 @@
       "expo-asset",
       "expo-location",
       "expo-dev-client",
-      "expo-localization",
-      "expo-secure-store",
-      "expo-web-browser",
       [
         "react-native-ble-plx",
         {
@@ -53,18 +50,20 @@
           "bluetoothAlwaysPermission": "Cette app utilise le Bluetooth pour se connecter aux appareils."
         }
       ],
+      "expo-localization",
+      "expo-secure-store",
+      "expo-web-browser",
       [
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true,
-            "kotlinVersion": "1.9.25"
+            "usesCleartextTraffic": true
           }
         }
       ]
     ],
     "extra": {
-      "eas": {
+      "extra": {
         "projectId": "42ded512-79ca-4a96-ad54-727bbf3d19f9"
       }
     }
