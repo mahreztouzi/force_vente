@@ -166,7 +166,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       <ScreenBackground />
       <StatusBar barStyle="dark-content" />
       <PagerView style={styles.pager} initialPage={0}>
-        <>
+        <View key="details_page" style={styles.flex}>
           {/* Header — uniquement bouton retour */}
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -313,7 +313,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               ))}
             </View>
           </ScrollView>
-        </>
+        </View>
 
         <ClientMap key="map" client={client} />
       </PagerView>
