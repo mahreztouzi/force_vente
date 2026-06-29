@@ -455,7 +455,8 @@ const BORDER = "#EEF1F6";
 const DrawerContent = ({ onClose }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const { currentLanguage, changeLanguage } = useAppLanguage();
   const langBtnRef = useRef(null);
   const [showLangPicker, setShowLangPicker] = useState(false);
@@ -579,9 +580,22 @@ const DrawerContent = ({ onClose }) => {
         <View style={styles.cardDivider} />
 
         <View style={styles.montantValueRow}>
+          {/* Si arabe : la devise s'affiche d'abord à gauche */}
+          {isAr && (
+            <Text style={[styles.montantCurrency, styles.currencyAr]}>
+              {t("common.soldeCurrency")}
+            </Text>
+          )}
+
           <Text style={styles.montantInteger}>{montantSplit.integer}</Text>
           <Text style={styles.montantDecimal}>,{montantSplit.decimal}</Text>
-          <Text style={styles.montantCurrency}> DA</Text>
+
+          {/* Si français : la devise s'affiche à la fin à droite */}
+          {!isAr && (
+            <Text style={styles.montantCurrency}>
+              {t("common.soldeCurrency")}
+            </Text>
+          )}
         </View>
 
         {totalMontant && totalMontant != 0 ? (
@@ -620,7 +634,7 @@ const DrawerContent = ({ onClose }) => {
           <Text style={styles.rowLabel}>{t("settings.title")}</Text>
         </View>
         <MaterialCommunityIcons
-          name="chevron-right"
+          name={isAr ? "chevron-left" : "chevron-right"}
           size={scale(20)}
           color={TEXT_MUTED}
         />
@@ -726,7 +740,7 @@ const DrawerContent = ({ onClose }) => {
             </View>
             <Text style={styles.navLabel}>{item.label}</Text>
             <MaterialCommunityIcons
-              name="chevron-right"
+              name={isAr ? "chevron-left" : "chevron-right"}
               size={scale(18)}
               color={TEXT_MUTED}
             />
@@ -776,6 +790,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     borderWidth: 1,
     borderColor: BORDER,
+    direction: "ltr",
   },
   profileRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
   avatar: {
@@ -799,6 +814,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "baseline",
+    direction: "ltr",
   },
   montantInteger: {
     fontSize: fs(28),

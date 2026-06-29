@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing } from "../../constants/Theme";
 import { scale, fs } from "../../utils/responsive";
@@ -31,13 +32,26 @@ const splitPrice = (value) => {
  * Affiche un prix avec partie entière grande, décimales + devise petites,
  * alignés sur la ligne de base (comme AliExpress).
  */
-const PriceTag = ({ value, currencyLabel = "DA" }) => {
+const PriceTag = ({ value }) => {
+  const { t, i18n } = useTranslation();
   const { integer, decimal } = splitPrice(value);
+  const isAr = i18n.language === "ar";
+  const currency = t("common.soldeCurrency");
+
   return (
     <View style={styles.priceRow}>
+      {/* Si arabe : la devise s'affiche d'abord à gauche */}
+      {isAr && (
+        <Text style={[styles.priceCurrency, styles.currencyAr]}>
+          {currency}
+        </Text>
+      )}
+
       <Text style={styles.priceInteger}>{integer}</Text>
       <Text style={styles.priceDecimal}>,{decimal}</Text>
-      <Text style={styles.priceCurrency}>{currencyLabel}</Text>
+
+      {/* Si français : la devise s'affiche à la fin à droite */}
+      {!isAr && <Text style={styles.priceCurrency}>{currency}</Text>}
     </View>
   );
 };
@@ -153,6 +167,7 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: "row",
     alignItems: "baseline", // aligne tous les segments sur la même ligne de base, malgré les tailles différentes
+    direction: "ltr",
   },
   priceInteger: {
     fontSize: fs(18),

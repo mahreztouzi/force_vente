@@ -211,6 +211,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, Radius } from "../../constants/Theme";
 import { scale } from "../../utils/responsive";
+import { useTranslation } from "react-i18next";
 
 const SearchInput = ({
   value = "",
@@ -228,6 +229,8 @@ const SearchInput = ({
   isRTL = false,
 }) => {
   const isTrigger = !!onPress;
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
 
   const filterButton = onFilterPress && (
     <TouchableOpacity
@@ -295,7 +298,7 @@ const SearchInput = ({
           )}
           {showChevron && (
             <Ionicons
-              name={isRTL ? "chevron-back" : "chevron-forward"}
+              name={isAr ? "chevron-back" : "chevron-forward"}
               size={scale(18)}
               color={Colors.textMuted}
             />

@@ -520,6 +520,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),

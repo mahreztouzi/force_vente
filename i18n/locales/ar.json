@@ -13,7 +13,8 @@
     "pendingSync": "في انتظار المزامنة",
     "delete": "حذف",
     "error": "خطأ",
-    "success": "نجاح"
+    "success": "نجاح",
+    "soldeCurrency": "د.ج"
   },
   "home": {
     "searchPlaceholder": "البحث عن المنتجات...",
@@ -209,5 +210,21 @@
     "errorEmpty": "السلة فارغة",
     "successTitle": "نجاح",
     "successMsg": "تم إنشاء الطلب بنجاح"
+  },
+  "filter": {
+    "availability": "التوفر",
+    "all": "الكل",
+    "inStock": "في المخزون",
+    "outOfStock": "نفد المخزون",
+    "sortBy": "ترتيب حسب",
+    "asc": "تصاعدي",
+    "desc": "تنازلي",
+    "az": "أ → ي",
+    "za": "ي → أ",
+    "price": "السعر",
+    "quantity": "الكمية",
+    "alphabetic": "أبجدي",
+    "reset": "إعادة تعيين",
+    "apply": "تطبيق"
   }
 }

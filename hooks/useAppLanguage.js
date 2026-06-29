@@ -7,25 +7,33 @@ import { i18n, LANGUAGE_STORAGE_KEY } from "../i18n";
 const RTL_LANGUAGES = ["ar"];
 
 export const useAppLanguage = () => {
-  const currentLanguage = i18n.language;
+  const currentLanguage = i18n.language; // ex: "ar" ou "fr"
   const isRTL = I18nManager.isRTL;
 
-  const changeLanguage = useCallback(async (langCode) => {
-    const shouldBeRTL = RTL_LANGUAGES.includes(langCode);
+  const changeLanguage = useCallback(
+    async (langCode) => {
+      // 1. On vérifie si la nouvelle langue demande un changement de sens par rapport à l'actuelle
+      const isCurrentAr = currentLanguage === "ar";
+      const isNewAr = langCode === "ar";
 
-    // Sauvegarde la préférence avant tout, pour la retrouver après le redémarrage
-    await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, langCode);
-    await i18n.changeLanguage(langCode);
+      // On doit recharger uniquement si on passe de FR->AR ou de AR->FR
+      const directionChanged = isCurrentAr !== isNewAr;
 
-    // Si l'orientation RTL/LTR doit changer, il faut forcer + redémarrer l'app
-    if (shouldBeRTL !== I18nManager.isRTL) {
-      I18nManager.allowRTL(shouldBeRTL);
-      I18nManager.forceRTL(shouldBeRTL);
+      const shouldBeRTL = RTL_LANGUAGES.includes(langCode);
 
-      // Redémarre l'app pour que tout le layout natif applique le nouveau sens
-      await Updates.reloadAsync();
-    }
-  }, []);
+      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, langCode);
+      await i18n.changeLanguage(langCode);
+
+      if (directionChanged) {
+        I18nManager.allowRTL(shouldBeRTL);
+        I18nManager.forceRTL(shouldBeRTL);
+
+        // Se déclenchera TOUJOURS, dans les deux sens !
+        await Updates.reloadAsync();
+      }
+    },
+    [currentLanguage],
+  ); // Important d'ajouter currentLanguage ici
 
   return { currentLanguage, isRTL, changeLanguage };
 };

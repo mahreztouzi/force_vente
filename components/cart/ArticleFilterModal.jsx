@@ -1,341 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-// import { Modalize } from "react-native-modalize";
-// import { Ionicons } from "@expo/vector-icons";
-// import { Colors, Spacing, Radius, Typography } from "../../constants/Theme";
-// import { scale, fs } from "../../utils/responsive";
-
-// const CRITERIA = [
-//   {
-//     key: "prix",
-//     label: "Prix",
-//     ascLabel: "Croissant",
-//     descLabel: "Décroissant",
-//   },
-//   {
-//     key: "quantite",
-//     label: "Quantité",
-//     ascLabel: "Croissant",
-//     descLabel: "Décroissant",
-//   },
-//   {
-//     key: "alphabet",
-//     label: "Alphabétique",
-//     ascLabel: "A → Z",
-//     descLabel: "Z → A",
-//   },
-// ];
-
-// const ArticleFilterModal = ({
-//   reference,
-//   initialSorts = [],
-//   initialStockFilter = "all",
-//   onApply,
-// }) => {
-//   const [activeSorts, setActiveSorts] = useState(initialSorts);
-//   const [stockFilter, setStockFilter] = useState(initialStockFilter);
-
-//   useEffect(() => {
-//     setActiveSorts(initialSorts);
-//     setStockFilter(initialStockFilter);
-//   }, [initialSorts, initialStockFilter]);
-
-//   const getDirectionForKey = (key) =>
-//     activeSorts.find((s) => s.key === key)?.direction || null;
-//   const getPriorityIndex = (key) => activeSorts.findIndex((s) => s.key === key);
-
-//   const toggleDirection = (key, direction) => {
-//     const current = getDirectionForKey(key);
-
-//     if (current === direction) {
-//       setActiveSorts((prev) => prev.filter((s) => s.key !== key));
-//     } else if (current) {
-//       setActiveSorts((prev) =>
-//         prev.map((s) => (s.key === key ? { ...s, direction } : s)),
-//       );
-//     } else {
-//       setActiveSorts((prev) => [...prev, { key, direction }]);
-//     }
-//   };
-
-//   const handleReset = () => {
-//     setActiveSorts([]);
-//     setStockFilter("all");
-//   };
-
-//   const handleApply = () => {
-//     onApply?.(activeSorts, stockFilter);
-//     reference.current?.close();
-//   };
-
-//   return (
-//     <Modalize
-//       ref={reference}
-//       adjustToContentHeight
-//       modalStyle={styles.modal}
-//       handlePosition="inside"
-//       handleStyle={styles.handle}
-//       withHandle
-//     >
-//       <View style={styles.content}>
-//         <Text style={styles.title}>Filtrer et trier</Text>
-
-//         <Text style={styles.sectionLabel}>Disponibilité</Text>
-//         <View style={styles.chipRow}>
-//           {[
-//             { key: "all", label: "Tous" },
-//             { key: "in_stock", label: "En stock" },
-//             { key: "out_of_stock", label: "Hors stock" },
-//           ].map((opt) => (
-//             <TouchableOpacity
-//               key={opt.key}
-//               style={[
-//                 styles.chip,
-//                 stockFilter === opt.key && styles.chipActive,
-//               ]}
-//               onPress={() => setStockFilter(opt.key)}
-//               activeOpacity={0.7}
-//             >
-//               <Text
-//                 style={[
-//                   styles.chipText,
-//                   stockFilter === opt.key && styles.chipTextActive,
-//                 ]}
-//               >
-//                 {opt.label}
-//               </Text>
-//             </TouchableOpacity>
-//           ))}
-//         </View>
-
-//         <Text style={styles.sectionLabel}>Trier par</Text>
-//         {CRITERIA.map((criterion) => {
-//           const direction = getDirectionForKey(criterion.key);
-//           const priority = getPriorityIndex(criterion.key);
-
-//           return (
-//             <View key={criterion.key} style={styles.criterionRow}>
-//               <View style={styles.criterionLabelRow}>
-//                 <Text style={styles.criterionLabel}>{criterion.label}</Text>
-//                 {priority !== -1 && (
-//                   <View style={styles.priorityBadge}>
-//                     <Text style={styles.priorityBadgeText}>{priority + 1}</Text>
-//                   </View>
-//                 )}
-//               </View>
-
-//               <View style={styles.directionRow}>
-//                 <TouchableOpacity
-//                   style={[
-//                     styles.directionBtn,
-//                     direction === "asc" && styles.directionBtnActive,
-//                   ]}
-//                   onPress={() => toggleDirection(criterion.key, "asc")}
-//                   activeOpacity={0.7}
-//                 >
-//                   <Ionicons
-//                     name="arrow-up"
-//                     size={scale(14)}
-//                     color={
-//                       direction === "asc" ? Colors.white : Colors.textMuted
-//                     }
-//                   />
-//                   <Text
-//                     style={[
-//                       styles.directionText,
-//                       direction === "asc" && styles.directionTextActive,
-//                     ]}
-//                   >
-//                     {criterion.ascLabel}
-//                   </Text>
-//                 </TouchableOpacity>
-
-//                 <TouchableOpacity
-//                   style={[
-//                     styles.directionBtn,
-//                     direction === "desc" && styles.directionBtnActive,
-//                   ]}
-//                   onPress={() => toggleDirection(criterion.key, "desc")}
-//                   activeOpacity={0.7}
-//                 >
-//                   <Ionicons
-//                     name="arrow-down"
-//                     size={scale(14)}
-//                     color={
-//                       direction === "desc" ? Colors.white : Colors.textMuted
-//                     }
-//                   />
-//                   <Text
-//                     style={[
-//                       styles.directionText,
-//                       direction === "desc" && styles.directionTextActive,
-//                     ]}
-//                   >
-//                     {criterion.descLabel}
-//                   </Text>
-//                 </TouchableOpacity>
-//               </View>
-//             </View>
-//           );
-//         })}
-
-//         <View style={styles.footerRow}>
-//           <TouchableOpacity
-//             style={styles.resetBtn}
-//             onPress={handleReset}
-//             activeOpacity={0.7}
-//           >
-//             <Text style={styles.resetText}>Réinitialiser</Text>
-//           </TouchableOpacity>
-
-//           <TouchableOpacity
-//             style={styles.applyBtn}
-//             onPress={handleApply}
-//             activeOpacity={0.85}
-//           >
-//             <Text style={styles.applyText}>Appliquer</Text>
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-//     </Modalize>
-//   );
-// };
-
-// export default ArticleFilterModal;
-
-// const styles = StyleSheet.create({
-//   modal: {
-//     borderTopLeftRadius: Radius.xl,
-//     borderTopRightRadius: Radius.xl,
-//   },
-//   handle: {
-//     backgroundColor: Colors.border,
-//     width: scale(40),
-//   },
-//   content: {
-//     padding: Spacing.xl,
-//     paddingBottom: Spacing.xxxl,
-//   },
-//   title: {
-//     ...Typography.h2,
-//     marginBottom: Spacing.lg,
-//   },
-//   sectionLabel: {
-//     ...Typography.caption,
-//     color: Colors.textMuted,
-//     fontWeight: "700",
-//     marginBottom: Spacing.sm,
-//     marginTop: Spacing.md,
-//   },
-//   chipRow: {
-//     flexDirection: "row",
-//     gap: Spacing.sm,
-//     marginBottom: Spacing.sm,
-//   },
-//   chip: {
-//     paddingHorizontal: Spacing.md,
-//     paddingVertical: Spacing.sm,
-//     borderRadius: Radius.pill,
-//     borderWidth: 1,
-//     borderColor: Colors.border,
-//   },
-//   chipActive: {
-//     backgroundColor: Colors.primary,
-//     borderColor: Colors.primary,
-//   },
-//   chipText: {
-//     ...Typography.caption,
-//     fontWeight: "600",
-//   },
-//   chipTextActive: {
-//     color: Colors.white,
-//   },
-//   criterionRow: {
-//     marginBottom: Spacing.lg,
-//   },
-//   criterionLabelRow: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     gap: Spacing.sm,
-//     marginBottom: Spacing.sm,
-//   },
-//   criterionLabel: {
-//     ...Typography.body,
-//     fontWeight: "600",
-//   },
-//   priorityBadge: {
-//     width: scale(18),
-//     height: scale(18),
-//     borderRadius: scale(9),
-//     backgroundColor: Colors.secondary,
-//     alignItems: "center",
-//     justifyContent: "center",
-//   },
-//   priorityBadgeText: {
-//     color: Colors.white,
-//     fontSize: fs(10),
-//     fontWeight: "800",
-//   },
-//   directionRow: {
-//     flexDirection: "row",
-//     gap: Spacing.sm,
-//   },
-//   directionBtn: {
-//     flex: 1,
-//     flexDirection: "row",
-//     alignItems: "center",
-//     justifyContent: "center",
-//     gap: Spacing.xs,
-//     paddingVertical: Spacing.sm,
-//     borderRadius: Radius.md,
-//     borderWidth: 1,
-//     borderColor: Colors.border,
-//   },
-//   directionBtnActive: {
-//     backgroundColor: Colors.primary,
-//     borderColor: Colors.primary,
-//   },
-//   directionText: {
-//     ...Typography.caption,
-//     fontWeight: "600",
-//   },
-//   directionTextActive: {
-//     color: Colors.white,
-//   },
-//   footerRow: {
-//     flexDirection: "row",
-//     gap: Spacing.md,
-//     marginTop: Spacing.lg,
-//   },
-//   resetBtn: {
-//     flex: 1,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     paddingVertical: Spacing.md,
-//     borderRadius: Radius.pill,
-//     borderWidth: 1.5,
-//     borderColor: Colors.border,
-//   },
-//   resetText: {
-//     ...Typography.body,
-//     fontWeight: "700",
-//     color: Colors.textSecondary,
-//   },
-//   applyBtn: {
-//     flex: 2,
-//     alignItems: "center",
-//     justifyContent: "center",
-//     paddingVertical: Spacing.md,
-//     borderRadius: Radius.pill,
-//     backgroundColor: Colors.secondary,
-//   },
-//   applyText: {
-//     color: Colors.white,
-//     fontWeight: "800",
-//     letterSpacing: 0.5,
-//   },
-// });
-
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
@@ -346,30 +8,10 @@ import {
   TouchableWithoutFeedback,
   Animated,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, Radius, Typography } from "../../constants/Theme";
 import { scale, fs } from "../../utils/responsive";
-
-const CRITERIA = [
-  {
-    key: "prix",
-    label: "Prix",
-    ascLabel: "Croissant",
-    descLabel: "Décroissant",
-  },
-  {
-    key: "quantite",
-    label: "Quantité",
-    ascLabel: "Croissant",
-    descLabel: "Décroissant",
-  },
-  {
-    key: "alphabet",
-    label: "Alphabétique",
-    ascLabel: "A → Z",
-    descLabel: "Z → A",
-  },
-];
 
 /**
  * Petite modale style Outlook — s'ouvre en haut à droite sous le bouton filtre.
@@ -397,12 +39,33 @@ const ArticleFilterModal = ({
   initialStockFilter = "all",
   onApply,
 }) => {
+  const { t } = useTranslation();
   const [activeSorts, setActiveSorts] = useState(initialSorts);
   const [stockFilter, setStockFilter] = useState(initialStockFilter);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
 
+  const CRITERIA = [
+    {
+      key: "prix",
+      label: t("filter.price"),
+      ascLabel: t("filter.asc"),
+      descLabel: t("filter.desc"),
+    },
+    {
+      key: "quantite",
+      label: t("filter.quantity"),
+      ascLabel: t("filter.asc"),
+      descLabel: t("filter.desc"),
+    },
+    {
+      key: "alphabet",
+      label: t("filter.alphabetic"),
+      ascLabel: t("filter.az"),
+      descLabel: t("filter.za"),
+    },
+  ];
   useEffect(() => {
     setActiveSorts(initialSorts);
     setStockFilter(initialStockFilter);
@@ -498,12 +161,12 @@ const ArticleFilterModal = ({
         <View style={styles.arrow} />
 
         {/* ── Disponibilité ── */}
-        <Text style={styles.sectionLabel}>Disponibilité</Text>
+        <Text style={styles.sectionLabel}>{t("filter.availability")}</Text>
         <View style={styles.chipRow}>
           {[
-            { key: "all", label: "Tous" },
-            { key: "in_stock", label: "En stock" },
-            { key: "out_of_stock", label: "Hors stock" },
+            { key: "all", label: t("filter.all") },
+            { key: "in_stock", label: t("filter.inStock") },
+            { key: "out_of_stock", label: t("filter.outOfStock") },
           ].map((opt) => (
             <TouchableOpacity
               key={opt.key}
@@ -528,8 +191,9 @@ const ArticleFilterModal = ({
 
         {/* ── Trier par ── */}
         <Text style={[styles.sectionLabel, { marginTop: scale(10) }]}>
-          Trier par
+          {t("filter.sortBy")}
         </Text>
+
         {CRITERIA.map((criterion) => {
           const direction = getDirectionForKey(criterion.key);
           const priority = getPriorityIndex(criterion.key);
@@ -589,14 +253,14 @@ const ArticleFilterModal = ({
             onPress={handleReset}
             activeOpacity={0.7}
           >
-            <Text style={styles.resetText}>Réinit.</Text>
+            <Text style={styles.resetText}>{t("filter.reset")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.applyBtn}
             onPress={handleApply}
             activeOpacity={0.85}
           >
-            <Text style={styles.applyText}>Appliquer</Text>
+            <Text style={styles.applyText}>{t("filter.apply")}</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>

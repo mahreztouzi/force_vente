@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     borderWidth: 0.5,
     borderColor: "#28559e33",
+    direction: "ltr",
   },
   itemHeader: {
     flexDirection: "row",

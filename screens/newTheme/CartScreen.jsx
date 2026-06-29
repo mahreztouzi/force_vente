@@ -33,7 +33,8 @@ import SearchInput from "../../components/common/SearchInput";
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const userData = useSelector((state) => state.auth.user);
   const { clients } = useSelector((state) => state.clients);
   const {
@@ -245,6 +246,7 @@ const CartScreen = ({ navigation }) => {
               }
               showChevron
               fullWidth
+              // isRTL={isAr}
               style={styles.clientPickerWrap}
               rightSlot={
                 selectedClient ? (

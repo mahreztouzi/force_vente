@@ -27,6 +27,7 @@ import ScreenBackground from "../../components/common/ScreenBackground";
 import PagerView from "react-native-pager-view";
 import ClientMap from "../../components/ClientMap";
 import BottomFade from "../../components/common/Bottomfade";
+import PriceDisplay from "../../components/common/Pricedisplay";
 
 const BLUE = "#03A9F4";
 const TEXT_DARK = "#212121";
@@ -249,7 +250,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
               {/* Solde — space-between, montant en grand avec virgule/DA en petit */}
               <View style={styles.soldeRow}>
                 <Text style={styles.soldeLabel}>{t("client.balance")}</Text>
-                <View style={styles.soldeValueRow}>
+                {/* <View style={styles.soldeValueRow}>
                   <Text style={styles.soldeInteger}>
                     {montantSplit.integer}
                   </Text>
@@ -257,7 +258,13 @@ const ClientDetailsScreen = ({ route, navigation }) => {
                     ,{montantSplit.decimal}
                   </Text>
                   <Text style={styles.soldeCurrency}>DA</Text>
-                </View>
+                </View> */}
+                <PriceDisplay
+                  amount={client.solde}
+                  // color="#4CAF50"
+                  intSize={24}
+                  decSize={15}
+                />
               </View>
 
               {/* Adresse */}
@@ -382,6 +389,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),

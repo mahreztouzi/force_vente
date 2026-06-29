@@ -13,7 +13,8 @@
     "pendingSync": "En attente de sync",
     "delete": "Supprimer",
     "error": "Erreur",
-    "success": "Succès"
+    "success": "Succès",
+    "soldeCurrency": "DA"
   },
   "home": {
     "searchPlaceholder": "Rechercher des produits...",
@@ -209,5 +210,21 @@
     "errorEmpty": "Le panier est vide",
     "successTitle": "Succès",
     "successMsg": "Commande créée avec succès"
+  },
+  "filter": {
+    "availability": "Disponibilité",
+    "all": "Tous",
+    "inStock": "En stock",
+    "outOfStock": "Hors stock",
+    "sortBy": "Trier par",
+    "asc": "Croissant",
+    "desc": "Décroissant",
+    "az": "A → Z",
+    "za": "Z → A",
+    "price": "Prix",
+    "quantity": "Quantité",
+    "alphabetic": "Alphabétique",
+    "reset": "Réinit.",
+    "apply": "Appliquer"
   }
 }

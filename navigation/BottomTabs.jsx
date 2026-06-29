@@ -172,6 +172,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: scale(22),
     borderTopRightRadius: scale(22),
     overflow: "hidden",
+    // direction: "ltr",
   },
   tabBarRow: {
     flex: 1,

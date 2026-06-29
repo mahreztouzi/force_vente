@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": false,
       "package": "com.bi2s.fastdelivery",
       "usesCleartextTraffic": true,
       "permissions": [
@@ -64,6 +64,9 @@
     ],
     "extra": {
       "extra": {
+        "projectId": "42ded512-79ca-4a96-ad54-727bbf3d19f9"
+      },
+      "eas": {
         "projectId": "42ded512-79ca-4a96-ad54-727bbf3d19f9"
       }
     }

@@ -25,7 +25,8 @@ const TAB_BAR_HEIGHT = scale(58) + scale(20);
 
 const ClientListScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
 
   const { clients, favorites, loading, error } = useSelector(
     (state) => state.clients,

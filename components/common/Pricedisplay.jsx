@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { fs, scale } from "../../utils/responsive";
+import { useTranslation } from "react-i18next";
 
 /**
  * Affichage montant style AliExpress : partie entière grande,
@@ -17,6 +18,8 @@ const PriceDisplay = ({
   decSize = 11,
   style,
 }) => {
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   // Garde stricte : toute valeur non numérique retombe sur 0, jamais NaN/undefined
   const safeAmount = Number.isFinite(parseFloat(amount))
     ? parseFloat(amount)
@@ -33,9 +36,10 @@ const PriceDisplay = ({
     ? intNumber.toLocaleString("fr-DZ")
     : "0";
 
+  const currency = t("common.soldeCurrency");
   return (
     <View style={[styles.wrap, style]}>
-      <Text style={[styles.int, { color, fontSize: fs(intSize) }]}>
+      {/* <Text style={[styles.int, { color, fontSize: fs(intSize) }]}>
         {intFormatted}
       </Text>
       <Text style={[styles.dec, { color, fontSize: fs(decSize) }]}>
@@ -44,7 +48,29 @@ const PriceDisplay = ({
       </Text>
       <Text style={[styles.currency, { color, fontSize: fs(decSize) }]}>
         {" DA"}
+      </Text> */}
+
+      {/* Si arabe : la devise s'affiche d'abord à gauche */}
+      {isAr && (
+        <Text style={[styles.currency, { color, fontSize: fs(decSize) }]}>
+          {currency}
+        </Text>
+      )}
+
+      <Text style={[styles.int, { color, fontSize: fs(intSize) }]}>
+        {intFormatted}
       </Text>
+      <Text style={[styles.dec, { color, fontSize: fs(decSize) }]}>
+        {","}
+        {decPart}
+      </Text>
+
+      {/* Si français : la devise s'affiche à la fin à droite */}
+      {!isAr && (
+        <Text style={[styles.currency, { color, fontSize: fs(decSize) }]}>
+          {currency}
+        </Text>
+      )}
     </View>
   );
 };
@@ -55,6 +81,7 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: "row",
     alignItems: "flex-end",
+    direction: "ltr",
   },
   int: {
     fontWeight: "800",
