@@ -58,7 +58,8 @@ const BORDER = "#E5E7EB";
  */
 const QuotationScreen = ({ route }) => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const { client, motif } = route.params;
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.auth.user);
@@ -233,20 +234,25 @@ const QuotationScreen = ({ route }) => {
   }, [handleQuantityConfirm]);
 
   const handleRemoveItem = (index) => {
-    Alert.alert(t("order.deleteTitle"), t("order.deleteMsg"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        onPress: () => {
-          const newItems = [...commandeItems];
-          newItems.splice(index, 1);
-          setCommandeItems(newItems);
-          setTimeout(() => updateTotals(), 100);
-          dispatch(resetQuotationState());
-        },
-        style: "destructive",
-      },
-    ]);
+    // Alert.alert(t("order.deleteTitle"), t("order.deleteMsg"), [
+    //   { text: t("common.cancel"), style: "cancel" },
+    //   {
+    //     text: t("common.delete"),
+    //     onPress: () => {
+    //       const newItems = [...commandeItems];
+    //       newItems.splice(index, 1);
+    //       setCommandeItems(newItems);
+    //       setTimeout(() => updateTotals(), 100);
+    //       dispatch(resetQuotationState());
+    //     },
+    //     style: "destructive",
+    //   },
+    // ]);
+    const newItems = [...commandeItems];
+    newItems.splice(index, 1);
+    setCommandeItems(newItems);
+    setTimeout(() => updateTotals(), 100);
+    dispatch(resetQuotationState());
   };
 
   const handleEditItem = (item, index) => {
@@ -426,8 +432,12 @@ const QuotationScreen = ({ route }) => {
       {/* <BottomFade height={70} /> */}
 
       {/* Bouton + flottant */}
+
       <TouchableOpacity
-        style={styles.addButton}
+        style={[
+          styles.addButton,
+          isAr ? { left: Spacing.lg } : { right: Spacing.lg },
+        ]}
         onPress={handleAddArticle}
         activeOpacity={0.85}
       >
@@ -629,11 +639,12 @@ const styles = StyleSheet.create({
 
   commandeList: {
     paddingBottom: FOOTER_HEIGHT,
+    direction: "ltr",
   },
 
   addButton: {
     position: "absolute",
-    right: Spacing.lg,
+    // right: Spacing.lg,
     bottom: FOOTER_HEIGHT + Spacing.md,
     width: scale(52),
     height: scale(52),

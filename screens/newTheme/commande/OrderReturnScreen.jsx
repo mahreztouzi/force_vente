@@ -50,7 +50,8 @@ const BORDER = "#E5E7EB";
 const FOOTER_HEIGHT = scale(140);
 
 const OrderReturnScreen = ({ route }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const navigation = useNavigation();
   const { client, motif } = route.params;
   const isRetour = !!motif;
@@ -436,7 +437,10 @@ const OrderReturnScreen = ({ route }) => {
 
       {/* FAB + */}
       <TouchableOpacity
-        style={styles.addButton}
+        style={[
+          styles.addButton,
+          isAr ? { left: Spacing.lg } : { right: Spacing.lg },
+        ]}
         onPress={handleAddArticle}
         activeOpacity={0.85}
       >
@@ -528,6 +532,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),
@@ -556,6 +561,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     gap: Spacing.sm,
+    direction: "ltr",
   },
   clientIconWrap: {
     width: scale(38),
@@ -660,12 +666,13 @@ const styles = StyleSheet.create({
   },
   commandeList: {
     paddingBottom: FOOTER_HEIGHT,
+    direction: "ltr",
   },
 
   // FAB
   addButton: {
     position: "absolute",
-    right: Spacing.lg,
+    // right: Spacing.lg,
     bottom: FOOTER_HEIGHT + Spacing.md,
     width: scale(52),
     height: scale(52),

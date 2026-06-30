@@ -14,7 +14,8 @@
     "delete": "Supprimer",
     "error": "Erreur",
     "success": "Succès",
-    "soldeCurrency": "DA"
+    "soldeCurrency": "DA",
+    "Qty": "Qte"
   },
   "home": {
     "searchPlaceholder": "Rechercher des produits...",

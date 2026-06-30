@@ -14,7 +14,8 @@
     "delete": "حذف",
     "error": "خطأ",
     "success": "نجاح",
-    "soldeCurrency": "د.ج"
+    "soldeCurrency": "د.ج",
+    "Qty": "الكمية"
   },
   "home": {
     "searchPlaceholder": "البحث عن المنتجات...",

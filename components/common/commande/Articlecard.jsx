@@ -6,6 +6,7 @@ import * as Haptics from "expo-haptics";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
 import PriceDisplay from "../Pricedisplay";
+import { useTranslation } from "react-i18next";
 
 const BLUE = "#03A9F4";
 const RED = "#e53935";
@@ -19,6 +20,8 @@ const TEXT_MUTED = "#757575";
  * où le bouton devient pleinement révélé.
  */
 const ArticleCard = ({ item, onPress, onDelete }) => {
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const swipeableRef = useRef(null);
   const hasTriggeredHaptic = useRef(false);
 
@@ -95,8 +98,9 @@ const ArticleCard = ({ item, onPress, onDelete }) => {
 
         <View style={styles.itemFooter}>
           <View style={styles.quantityContainer}>
-            <Text style={styles.itemLabel}>Qté :</Text>
+            {!isAr && <Text style={styles.itemLabel}>{t("common.Qty")} :</Text>}
             <Text style={styles.quantityDisplay}>{quantityLabel}</Text>
+            {isAr && <Text style={styles.itemLabel}>{t("common.Qty")} :</Text>}
           </View>
 
           <PriceDisplay amount={total} intSize={14} decSize={10} />
@@ -110,13 +114,12 @@ export default ArticleCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#e9dcc552",
+    backgroundColor: "#fff",
     borderRadius: Radius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     borderWidth: 0.5,
     borderColor: "#28559e33",
-    direction: "ltr",
   },
   itemHeader: {
     flexDirection: "row",
