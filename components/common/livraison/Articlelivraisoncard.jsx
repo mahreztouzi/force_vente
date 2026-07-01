@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const BLUE = "#03A9F4";
 const GREEN = "#4CAF50";
@@ -18,6 +19,7 @@ const ArticleLivraisonCard = ({
   onDeselect,
   loadingStocks,
 }) => {
+  const { t } = useTranslation();
   const stockItem = stockInfo?.[item.id];
   const hasLot = item.charg && stockItem?.lotDetails?.[item.charg];
   const stockQuantity = item.charg
@@ -87,32 +89,37 @@ const ArticleLivraisonCard = ({
       {/* Désignation + lot */}
       <Text style={styles.designation} numberOfLines={2}>
         {item.designation}
-        {item.charg ? <Text style={styles.lot}> Lot: {item.charg}</Text> : null}
+        {item.charg ? (
+          <Text style={styles.lot}>
+            {" "}
+            {t("livraison.lot")} {item.charg}
+          </Text>
+        ) : null}
       </Text>
 
       {/* Qtés */}
       {loadingStocks ? (
-        <Text style={styles.loadingText}>Chargement du stock…</Text>
+        <Text style={styles.loadingText}>{t("livraison.loadingStock")}</Text>
       ) : (
         <View style={styles.qtyRow}>
           <QtyBadge
-            label="Cmdée"
+            label={t("livraison.qtyOrderedShort")}
             value={item.qteCommandee}
             unite={item.unite}
           />
           <QtyBadge
-            label="Restante"
+            label={t("livraison.qtyRemainingShort")}
             value={item.qteRestante}
             unite={item.unite}
           />
           <QtyBadge
-            label="Stock"
+            label={t("livraison.stock")}
             value={stockQuantity}
             unite={item.unite}
             color={stockColor}
           />
           <QtyBadge
-            label="À livrer"
+            label={t("livraison.qtyToDeliver")}
             value={isSelected ? item.qteALivrer : "—"}
             unite={isSelected ? item.unite : ""}
             color={isSelected ? GREEN : TEXT_MUTED}
@@ -122,17 +129,21 @@ const ArticleLivraisonCard = ({
 
       {/* Prompt */}
       {!isInStock ? (
-        <Prompt icon="error-outline" text="Stock insuffisant" color={RED} />
+        <Prompt
+          icon="error-outline"
+          text={t("livraison.stockInsufficient")}
+          color={RED}
+        />
       ) : isSelected && isInsufficient ? (
         <Prompt
           icon="warning"
-          text="Stock insuffisant pour la qté restante"
+          text={t("livraison.stockInsufficientRemaining")}
           color={ORANGE}
         />
       ) : !isSelected ? (
         <Prompt
           icon="add-circle-outline"
-          text="Appuyez pour définir la quantité"
+          text={t("livraison.tapToSetQty")}
           color={BLUE}
         />
       ) : null}
@@ -162,14 +173,14 @@ export default ArticleLivraisonCard;
 const styles = StyleSheet.create({
   card: {
     borderRadius: Radius.lg,
-    borderLeftWidth: scale(4),
+    // borderLeftWidth: scale(4),
     padding: Spacing.md,
     marginBottom: Spacing.sm,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.05,
+    // shadowRadius: 4,
+    // elevation: 1,
   },
   header: {
     flexDirection: "row",
@@ -215,6 +226,7 @@ const styles = StyleSheet.create({
   prompt: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: scale(6),
     paddingTop: Spacing.sm,
     borderTopWidth: 1,

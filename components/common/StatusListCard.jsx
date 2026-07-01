@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { scale, fs } from "../../utils/responsive";
 import { Spacing, Radius } from "../../constants/Theme";
 import PriceDisplay from "./Pricedisplay";
+import { useTranslation } from "react-i18next";
 
 const TEXT_DARK = "#1F2937";
 const TEXT_MUTED = "#6B7280";
@@ -41,63 +42,78 @@ const StatusListCard = ({
   amountColor = TEAL,
   isOffline = false,
   onPress,
-}) => (
-  <TouchableOpacity
-    style={[styles.card, isOffline && styles.offlineCard]}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        <Text style={styles.dateText}>{date}</Text>
-        {!hideNumber && number ? (
-          <Text style={styles.numberText}>{number}</Text>
+}) => {
+  const { t } = useTranslation();
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, isOffline && styles.offlineCard]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.dateText}>{date}</Text>
+          {!hideNumber && number ? (
+            <Text style={styles.numberText}>{number}</Text>
+          ) : null}
+          {reference ? <Text style={styles.refText}>{reference}</Text> : null}
+        </View>
+
+        {statusLabel ? (
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: `${statusColor}20` },
+            ]}
+          >
+            <View
+              style={[styles.statusDot, { backgroundColor: statusColor }]}
+            />
+            <Text style={[styles.statusText, { color: statusColor }]}>
+              {statusLabel}
+            </Text>
+          </View>
         ) : null}
-        {reference ? <Text style={styles.refText}>{reference}</Text> : null}
       </View>
 
-      {statusLabel ? (
-        <View
-          style={[styles.statusBadge, { backgroundColor: `${statusColor}20` }]}
-        >
-          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            {statusLabel}
-          </Text>
-        </View>
-      ) : null}
-    </View>
+      <View style={styles.divider} />
 
-    <View style={styles.divider} />
+      <View style={styles.footer}>
+        {articlesCount !== undefined && (
+          <View style={styles.statItem}>
+            <MaterialIcons
+              name="inventory"
+              size={scale(14)}
+              color={TEXT_MUTED}
+            />
+            <Text style={styles.statText}>
+              {articlesCount} {t("cart.articles")}
+            </Text>
+          </View>
+        )}
 
-    <View style={styles.footer}>
-      {articlesCount !== undefined && (
-        <View style={styles.statItem}>
-          <MaterialIcons name="inventory" size={scale(14)} color={TEXT_MUTED} />
-          <Text style={styles.statText}>{articlesCount} articles</Text>
-        </View>
-      )}
+        {amount !== undefined && (
+          <PriceDisplay
+            amount={amount}
+            color={amountColor}
+            intSize={15}
+            decSize={11}
+            style={styles.priceWrap}
+          />
+        )}
 
-      {amount !== undefined && (
-        <PriceDisplay
-          amount={amount}
-          color={amountColor}
-          intSize={15}
-          decSize={11}
-          style={styles.priceWrap}
-        />
-      )}
-
-      <MaterialIcons name="chevron-right" size={scale(18)} color="#9CA3AF" />
-    </View>
-
-    {isOffline && (
-      <View style={styles.offlineBadge}>
-        <MaterialIcons name="cloud-off" size={scale(12)} color="#F59E0B" />
+        <MaterialIcons name="chevron-right" size={scale(18)} color="#9CA3AF" />
       </View>
-    )}
-  </TouchableOpacity>
-);
+
+      {isOffline && (
+        <View style={styles.offlineBadge}>
+          <MaterialIcons name="cloud-off" size={scale(12)} color="#F59E0B" />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 export default StatusListCard;
 
@@ -168,6 +184,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     alignItems: "center",
+
     gap: Spacing.sm,
   },
   statItem: {
@@ -182,6 +199,7 @@ const styles = StyleSheet.create({
   },
   priceWrap: {
     flex: 1,
+    justifyContent: "flex-end",
   },
   offlineBadge: {
     position: "absolute",

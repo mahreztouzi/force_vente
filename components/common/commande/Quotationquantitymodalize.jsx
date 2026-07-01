@@ -11,6 +11,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
+import PriceDisplay from "../Pricedisplay";
 
 const BLUE = "#03A9F4";
 const TEAL = "#006475";
@@ -41,7 +43,9 @@ const QuotationQuantityModalize = ({
   loading = false,
   onConfirm,
   onChooseOther,
+  onClosed,
 }) => {
+  const { t } = useTranslation();
   const article = selectedNewArticle || selectedArticle;
   const prix = parseFloat(article?.prix) || 0;
   const total = prix * (parseFloat(quantity) || 0);
@@ -59,10 +63,17 @@ const QuotationQuantityModalize = ({
   };
 
   return (
-    <Modalize ref={reference} adjustToContentHeight modalStyle={styles.modal}>
+    <Modalize
+      ref={reference}
+      adjustToContentHeight
+      modalStyle={styles.modal}
+      onClosed={onClosed}
+    >
       <View style={styles.container}>
         <Text style={styles.title}>
-          {statusOperation === "add" ? "Nouvel article" : "Modification"}
+          {statusOperation === "add"
+            ? t("order.newArticleTitle")
+            : t("order.editTitle")}
         </Text>
         <Text style={styles.designation} numberOfLines={2}>
           {article?.designation}
@@ -72,14 +83,17 @@ const QuotationQuantityModalize = ({
           <View style={styles.warning}>
             <MaterialIcons name="warning" size={scale(16)} color="#FF9800" />
             <Text style={styles.warningText}>
-              Quantité déjà validée : {minQuantity} {selectedArticle?.kmein}
+              {t("order.alreadyValidatedQty", {
+                qty: minQuantity,
+                unit: selectedArticle?.kmein,
+              })}
             </Text>
           </View>
         )}
 
         {/* Stepper */}
         <View style={styles.stepperRow}>
-          <Text style={styles.label}>Quantité</Text>
+          <Text style={styles.label}>{t("order.quantityLabel")}</Text>
           <View style={styles.controls}>
             <TouchableOpacity
               style={[
@@ -115,22 +129,24 @@ const QuotationQuantityModalize = ({
         {/* Prix preview */}
         <View style={styles.priceBox}>
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Prix unitaire</Text>
-            <Text style={styles.priceValue}>
-              {prix.toLocaleString("fr-DZ", {
-                style: "currency",
-                currency: "DZD",
-              })}
-            </Text>
+            <Text style={styles.priceLabel}>{t("order.unitPrice")}</Text>
+
+            <PriceDisplay
+              amount={prix}
+              color={"black"}
+              intSize={15}
+              decSize={10}
+            />
           </View>
           <View style={[styles.priceRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>
-              {total.toLocaleString("fr-DZ", {
-                style: "currency",
-                currency: "DZD",
-              })}
-            </Text>
+            <Text style={styles.totalLabel}>{t("order.total")}</Text>
+
+            <PriceDisplay
+              amount={total}
+              color={TEAL}
+              intSize={20}
+              decSize={13}
+            />
           </View>
         </View>
 
@@ -138,7 +154,9 @@ const QuotationQuantityModalize = ({
         {statusOperation === "update" && minQuantity <= 0 && (
           <TouchableOpacity style={styles.changeBtn} onPress={onChooseOther}>
             <MaterialIcons name="swap-horiz" size={scale(18)} color={BLUE} />
-            <Text style={styles.changeBtnText}>Choisir un autre article</Text>
+            <Text style={styles.changeBtnText}>
+              {t("order.chooseOtherArticle")}
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -150,7 +168,7 @@ const QuotationQuantityModalize = ({
           {loading ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.confirmText}>Confirmer</Text>
+            <Text style={styles.confirmText}>{t("common.confirm")}</Text>
           )}
         </TouchableOpacity>
       </View>

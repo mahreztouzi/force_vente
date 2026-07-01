@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import { Modalize } from "react-native-modalize";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import PriceDisplay from "./common/Pricedisplay";
 
 const QuantityModalize = ({
   reference,
@@ -21,7 +23,7 @@ const QuantityModalize = ({
   batch, // ✅ Ajouter
   setBatch,
 }) => {
-  console.log("selected article in qte motif", selectedArticle);
+  const { t } = useTranslation();
   return (
     <Modalize
       ref={reference}
@@ -30,14 +32,16 @@ const QuantityModalize = ({
     >
       {selectedArticle && (
         <View style={styles.quantityModal}>
-          <Text style={styles.quantityTitle}>Définir la quantité</Text>
+          <Text style={styles.quantityTitle}>
+            {t("order.setQuantityTitle")}
+          </Text>
           <Text style={styles.quantityArticle}>
             {selectedArticle.designation}
           </Text>
 
           {/* Quantity Controls */}
           <View style={styles.quantityRow}>
-            <Text style={styles.quantityLabel}>Quantité:</Text>
+            <Text style={styles.quantityLabel}>{t("order.quantity")}</Text>
             <View style={styles.quantityControls}>
               <TouchableOpacity
                 style={styles.quantityButton}
@@ -125,15 +129,15 @@ const QuantityModalize = ({
           {/* Batch Input - Only for return orders AND "Produits revente en état" */}
           {motif && selectedArticle?.gerer_par_lot === true && (
             <View style={styles.batchContainer}>
-              <Text style={styles.batchLabel}>Numéro de lot *</Text>
+              <Text style={styles.batchLabel}>{t("order.batchNumber")}</Text>
               <TextInput
                 style={styles.batchInput}
                 value={batch}
                 onChangeText={setBatch}
-                placeholder="Veuillez entrer le numéro de lot"
+                placeholder={t("order.batchPlaceholder")}
                 autoCapitalize="characters"
                 placeholderTextColor="#999"
-                accessibilityLabel="Veuillez entrer le numéro de lot"
+                accessibilityLabel={t("order.batchPlaceholder")}
                 maxLength={10}
               />
             </View>
@@ -142,42 +146,68 @@ const QuantityModalize = ({
           {/* Price calculation preview */}
           <View style={styles.pricePreview}>
             <View style={styles.pricePreviewRow}>
-              <Text style={styles.pricePreviewRowTitle}>Prix unitaire :</Text>
-              <Text style={styles.pricePreviewRowValue}>
+              <Text style={styles.pricePreviewRowTitle}>
+                {t("order.unitPrice")} :
+              </Text>
+              {/* <Text style={styles.pricePreviewRowValue}>
                 {parseFloat(selectedArticle.prix).toLocaleString("fr-DZ", {
                   style: "currency",
                   currency: "DZD",
                 })}
-              </Text>
+              </Text> */}
+              <PriceDisplay
+                amount={selectedArticle.prix}
+                color="#060606"
+                intSize={15}
+                decSize={10}
+              />
             </View>
 
             {parseFloat(discount) > 0 && (
               <View style={styles.pricePreviewRow}>
-                <Text>Remise ({discount}%) :</Text>
+                <Text>{t("order.discountAmount", { discount })}</Text>
                 <Text style={styles.totalPreviewValue}>
                   -
-                  {parseFloat(
+                  {/* {parseFloat(
                     ((selectedArticle.prix * parseFloat(discount)) / 100) *
-                      parseInt(quantity || "0")
+                      parseInt(quantity || "0"),
                   ).toLocaleString("fr-DZ", {
                     style: "currency",
                     currency: "DZD",
-                  })}
+                  })} */}
+                  <PriceDisplay
+                    amount={
+                      ((selectedArticle.prix * parseFloat(discount)) / 100) *
+                      parseInt(quantity || "0")
+                    }
+                    color="#060606"
+                    intSize={15}
+                    decSize={10}
+                  />
                 </Text>
               </View>
             )}
 
             <View style={[styles.pricePreviewRow, styles.totalPreviewRow]}>
-              <Text style={styles.totalPreviewLabel}>Total :</Text>
+              <Text style={styles.totalPreviewLabel}>{t("order.total")} :</Text>
               <Text style={styles.totalPreviewValue}>
-                {parseFloat(
+                {/* {parseFloat(
                   selectedArticle.prix *
                     parseInt(quantity || "0") *
-                    (1 - parseFloat(discount) / 100)
+                    (1 - parseFloat(discount) / 100),
                 ).toLocaleString("fr-DZ", {
                   style: "currency",
                   currency: "DZD",
-                })}
+                })} */}
+                <PriceDisplay
+                  amount={
+                    selectedArticle.prix *
+                    parseInt(quantity || "0") *
+                    (1 - parseFloat(discount) / 100)
+                  }
+                  intSize={22}
+                  decSize={15}
+                />
               </Text>
             </View>
           </View>
@@ -186,7 +216,7 @@ const QuantityModalize = ({
             style={styles.confirmButton}
             onPress={handleQuantityConfirm}
           >
-            <Text style={styles.confirmButtonText}>Confirmer</Text>
+            <Text style={styles.confirmButtonText}>{t("common.confirm")}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -269,6 +299,7 @@ const styles = StyleSheet.create({
   },
   totalPreviewLabel: {
     fontWeight: "bold",
+    fontSize: 22,
   },
   totalPreviewValue: {
     fontWeight: "bold",

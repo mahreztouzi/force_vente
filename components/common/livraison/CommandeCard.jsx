@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const STATUS_COLORS = {
   initial: "#3B82F6",
@@ -14,7 +15,16 @@ const STATUS_COLORS = {
  * Carte commande réutilisable — liste principale "Commandes à livrer".
  */
 const CommandeCard = ({ commande, onPress }) => {
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
+
   const statusColor = STATUS_COLORS[commande.status] || "#9CA3AF";
+  const STATUS_LABELS = {
+    initial: t("order.statusInitial"),
+    encours: t("order.statusEncours"),
+    termine: t("order.statusTermine"),
+  };
+  const statusLabel = STATUS_LABELS[commande.status] || commande.statutGlobal;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -32,7 +42,7 @@ const CommandeCard = ({ commande, onPress }) => {
         >
           <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
           <Text style={[styles.statusText, { color: statusColor }]}>
-            {commande.statutGlobal}
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -42,7 +52,10 @@ const CommandeCard = ({ commande, onPress }) => {
       <View style={styles.footer}>
         <View style={styles.statItem}>
           <MaterialIcons name="inventory" size={scale(15)} color="#6B7280" />
-          <Text style={styles.statText}>{commande.totalArticles} articles</Text>
+          <Text style={styles.statText}>
+            {" "}
+            {commande.totalArticles} {t("livraison.articlesTitle")}
+          </Text>
         </View>
         <MaterialIcons name="chevron-right" size={scale(20)} color="#9CA3AF" />
       </View>

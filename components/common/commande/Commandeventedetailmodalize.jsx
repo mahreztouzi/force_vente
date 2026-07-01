@@ -10,6 +10,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const TEXT_DARK = "#1F2937";
 const TEXT_MUTED = "#6B7280";
@@ -24,6 +25,7 @@ const BORDER = "#F1F5F9";
  *   postes     — articles de la commande
  */
 const CommandeVenteDetailModalize = ({ reference, commande, postes = [] }) => {
+  const { t } = useTranslation();
   if (!commande) return null;
 
   const isVente = commande.auart === "ZCMD";
@@ -52,7 +54,10 @@ const CommandeVenteDetailModalize = ({ reference, commande, postes = [] }) => {
             <Text style={styles.clientName}>{commande.clientName}</Text>
             <View style={styles.subRow}>
               {commande.vgbel ? (
-                <Text style={styles.meta}>Réf: {commande.vgbel}</Text>
+                <Text style={styles.meta}>
+                  {t("order.reference")}
+                  {commande.vgbel}
+                </Text>
               ) : null}
               <Text style={styles.meta}>{commande.erdat}</Text>
             </View>
@@ -67,18 +72,26 @@ const CommandeVenteDetailModalize = ({ reference, commande, postes = [] }) => {
 
         {/* Table */}
         <View style={styles.tableWrap}>
-          <Text style={styles.articlesTitle}>{postes.length} article(s)</Text>
+          <Text style={styles.articlesTitle}>
+            {postes.length} {t("cart.articles")}
+          </Text>
 
           {/* En-têtes */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.thText, { flex: 4 }]}>Code / Désignation</Text>
-            <Text style={[styles.thText, styles.right, { flex: 2 }]}>Qté</Text>
+            <Text style={[styles.thText, { flex: 4 }]}>
+              {t("order.codeDesignation")}
+            </Text>
+            <Text style={[styles.thText, styles.right, { flex: 2 }]}>
+              {t("order.qty")}
+            </Text>
             {isVente && (
               <Text style={[styles.thText, styles.right, { flex: 2 }]}>
-                Qté Rest.
+                {t("livraison.qtyRemaining")}
               </Text>
             )}
-            <Text style={[styles.thText, styles.right, { flex: 2 }]}>Prix</Text>
+            <Text style={[styles.thText, styles.right, { flex: 2 }]}>
+              {t("order.price")}
+            </Text>
           </View>
 
           <ScrollView style={styles.tableScroll} nestedScrollEnabled>
@@ -93,7 +106,9 @@ const CommandeVenteDetailModalize = ({ reference, commande, postes = [] }) => {
                     {article.designation}
                   </Text>
                   {article.charg ? (
-                    <Text style={styles.lot}>Lot: {article.charg}</Text>
+                    <Text style={styles.lot}>
+                      {t("livraison.lot")}: {article.charg}
+                    </Text>
                   ) : null}
                 </View>
 
@@ -189,7 +204,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingVertical: scale(8),
     paddingHorizontal: scale(12),
     borderBottomWidth: 1,

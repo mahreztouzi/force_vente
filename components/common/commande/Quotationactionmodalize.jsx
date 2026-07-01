@@ -10,6 +10,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 /**
  * QuotationActionModalize — modal actions sur un article d'offre.
@@ -27,7 +28,9 @@ const QuotationActionModalize = ({
   deleteLoading,
   onEdit,
   onDelete,
+  onClosed,
 }) => {
+  const { t } = useTranslation();
   const canDelete = !article || article.qte_accepte <= 0;
 
   return (
@@ -36,20 +39,21 @@ const QuotationActionModalize = ({
       adjustToContentHeight
       closeOnOverlayTap
       withHandle
+      onClosed={onClosed}
     >
       <View style={styles.container}>
         {deleteLoading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color="#03A9F4" />
-            <Text style={styles.loadingText}>Suppression en cours...</Text>
+            <Text style={styles.loadingText}>{t("order.deleting")}</Text>
           </View>
         ) : (
           <>
-            <Text style={styles.title}>Actions</Text>
+            <Text style={styles.title}>{t("order.actions")}</Text>
 
             <TouchableOpacity style={styles.row} onPress={onEdit}>
               <MaterialIcons name="edit" size={scale(22)} color="#2196F3" />
-              <Text style={styles.rowText}>Modifier l'article</Text>
+              <Text style={styles.rowText}>{t("order.editArticle")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -63,7 +67,7 @@ const QuotationActionModalize = ({
                 color={canDelete ? "#F44336" : "#BDBDBD"}
               />
               <Text style={[styles.rowText, !canDelete && styles.disabledText]}>
-                Supprimer l'article
+                {t("order.deleteArticle")}
               </Text>
             </TouchableOpacity>
 
@@ -71,7 +75,7 @@ const QuotationActionModalize = ({
               style={styles.cancelBtn}
               onPress={() => reference.current?.close()}
             >
-              <Text style={styles.cancelText}>Annuler</Text>
+              <Text style={styles.cancelText}>{t("common.cancel")}</Text>
             </TouchableOpacity>
           </>
         )}

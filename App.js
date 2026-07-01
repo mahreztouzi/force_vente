@@ -100,7 +100,7 @@ const LoadingView = () => (
 const AppContent = () => {
   const colorScheme = useColorScheme();
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider edges={["top", "bottom"]}>
       <StatusBar />
       <Navigation colorScheme={colorScheme} />
     </SafeAreaProvider>

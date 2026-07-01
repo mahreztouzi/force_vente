@@ -12,6 +12,7 @@ import { Modalize } from "react-native-modalize";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
 import ArticleRow from "../Articlerow";
+import { useTranslation } from "react-i18next";
 
 const BLUE = "#03A9F4";
 const TEXT_DARK = "#1F2937";
@@ -41,6 +42,7 @@ const LivraisonDetailModalize = ({
   onPrint,
   onProcess,
 }) => {
+  const { t } = useTranslation();
   if (!livraison) return null;
 
   const processConfig = getProcessButtonConfig?.(livraison.staut_globale);
@@ -68,7 +70,10 @@ const LivraisonDetailModalize = ({
           <View style={{ flex: 1 }}>
             <Text style={styles.clientName}>{livraison.clientName}</Text>
             <View style={styles.subRow}>
-              <Text style={styles.meta}>Cmd N°{livraison.num_cmd}</Text>
+              <Text style={styles.meta}>
+                {t("livraison.cmdNum")}
+                {livraison.num_cmd}
+              </Text>
               <Text style={styles.meta}>{livraison.date_liv}</Text>
             </View>
           </View>
@@ -81,17 +86,19 @@ const LivraisonDetailModalize = ({
         </View>
 
         {/* Table */}
-        <Text style={styles.articlesTitle}>{articles.length} article(s)</Text>
+        <Text style={styles.articlesTitle}>
+          {articles.length} {t("livraison.articlesTitle")}
+        </Text>
 
         <View style={styles.tableHeader}>
           <Text style={[styles.tableHeaderText, { flex: 4 }]}>
-            Code / Désignation
+            {t("livraison.codeDesignationShort")}
           </Text>
           <Text style={[styles.tableHeaderText, styles.right, { flex: 2 }]}>
-            Qté
+            {t("livraison.qtyShort")}
           </Text>
           <Text style={[styles.tableHeaderText, styles.right, { flex: 2 }]}>
-            P.U.
+            {t("livraison.unitPrice")}
           </Text>
         </View>
 
@@ -110,13 +117,15 @@ const LivraisonDetailModalize = ({
         <View style={styles.actionsRow}>
           <ActionBtn
             icon="print"
-            label="Imprimer"
+            label={t("livraison.print")}
             onPress={() => onPrint?.(livraison)}
           />
           {processConfig?.show && isServerReachable && (
             <ActionBtn
               icon={isProcessing ? null : processConfig.icon}
-              label={isProcessing ? "En cours..." : processConfig.title}
+              label={
+                isProcessing ? t("livraison.processing") : processConfig.title
+              }
               onPress={() => onProcess?.(livraison)}
               disabled={isProcessing}
               loading={isProcessing}

@@ -17,7 +17,7 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getArticles } from "../../../redux/slices/articleSlice";
 import {
@@ -83,6 +83,20 @@ const QuotationScreen = ({ route }) => {
   const articlesModalizeRef = useRef(null);
   const quantityModalizeRef = useRef(null);
   const printModalizeRef = useRef(null);
+
+  const [articlesModalKey, setArticlesModalKey] = useState(0);
+  // const articlesModalizeRef = useRef(null);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      setArticlesModalKey((prev) => prev + 1);
+    }
+  }, [isFocused]);
+
+  const handleArticlesModalClose = () => {
+    setArticlesModalKey((prev) => prev + 1);
+  };
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -188,9 +202,11 @@ const QuotationScreen = ({ route }) => {
   const handleArticleSelect = (article) => {
     setSelectedArticle(article);
     articlesModalizeRef.current?.close();
-    setQuantity("1");
-    setDiscount("0");
-    quantityModalizeRef.current?.open();
+    setTimeout(() => {
+      setQuantity("1");
+      setDiscount("0");
+      quantityModalizeRef.current?.open();
+    }, 300);
   };
 
   const handleQuantityConfirm = () => {
@@ -234,25 +250,20 @@ const QuotationScreen = ({ route }) => {
   }, [handleQuantityConfirm]);
 
   const handleRemoveItem = (index) => {
-    // Alert.alert(t("order.deleteTitle"), t("order.deleteMsg"), [
-    //   { text: t("common.cancel"), style: "cancel" },
-    //   {
-    //     text: t("common.delete"),
-    //     onPress: () => {
-    //       const newItems = [...commandeItems];
-    //       newItems.splice(index, 1);
-    //       setCommandeItems(newItems);
-    //       setTimeout(() => updateTotals(), 100);
-    //       dispatch(resetQuotationState());
-    //     },
-    //     style: "destructive",
-    //   },
-    // ]);
-    const newItems = [...commandeItems];
-    newItems.splice(index, 1);
-    setCommandeItems(newItems);
-    setTimeout(() => updateTotals(), 100);
-    dispatch(resetQuotationState());
+    Alert.alert(t("order.deleteTitle"), t("order.deleteMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("common.delete"),
+        onPress: () => {
+          const newItems = [...commandeItems];
+          newItems.splice(index, 1);
+          setCommandeItems(newItems);
+          setTimeout(() => updateTotals(), 100);
+          dispatch(resetQuotationState());
+        },
+        style: "destructive",
+      },
+    ]);
   };
 
   const handleEditItem = (item, index) => {
@@ -486,12 +497,14 @@ const QuotationScreen = ({ route }) => {
 
       {/* Modalize — composants inchangés */}
       <ArticlesModalize
+        key={articlesModalKey}
         reference={articlesModalizeRef}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         filteredArticles={filteredArticles}
         handleArticleSelect={handleArticleSelect}
         scrollY={scrollY}
+        onClosed={handleArticlesModalClose}
       />
 
       <QuantityModalize

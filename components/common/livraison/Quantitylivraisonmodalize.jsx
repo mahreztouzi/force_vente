@@ -10,6 +10,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const BLUE = "#03A9F4";
 const TEAL = "#006475";
@@ -22,6 +23,7 @@ const QuantityLivraisonModalize = ({
   stockInfo,
   onConfirm,
 }) => {
+  const { t } = useTranslation();
   if (!selectedArticle) return null;
 
   const stockItem = stockInfo?.[selectedArticle.id];
@@ -54,24 +56,26 @@ const QuantityLivraisonModalize = ({
   return (
     <Modalize ref={reference} adjustToContentHeight modalStyle={styles.modal}>
       <View style={styles.container}>
-        <Text style={styles.title}>Quantité à livrer</Text>
+        <Text style={styles.title}>{t("livraison.quantityTitle")}</Text>
         <Text style={styles.designation} numberOfLines={2}>
           {selectedArticle.designation}
-          {selectedArticle.charg ? `  —  Lot: ${selectedArticle.charg}` : ""}
+          {selectedArticle.charg
+            ? `  —  ${t("livraison.lot")}: ${selectedArticle.charg}`
+            : ""}
         </Text>
 
         {/* Info */}
         <View style={styles.infoBox}>
           <InfoRow
-            label="Commandée"
+            label={t("livraison.qtyOrdered")}
             value={`${selectedArticle.qteCommandee} ${selectedArticle.unite}`}
           />
           <InfoRow
-            label="Restante"
+            label={t("livraison.qtyRemaining")}
             value={`${selectedArticle.qteRestante} ${selectedArticle.unite}`}
           />
           <InfoRow
-            label="Stock"
+            label={t("livraison.stock")}
             value={`${stockQuantity} ${selectedArticle.unite}`}
           />
         </View>
@@ -94,11 +98,11 @@ const QuantityLivraisonModalize = ({
         </View>
 
         <TouchableOpacity style={styles.maxBtn} onPress={handleMax}>
-          <Text style={styles.maxText}>Quantité maximale</Text>
+          <Text style={styles.maxText}>{t("livraison.maxQuantity")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.confirmBtn} onPress={onConfirm}>
-          <Text style={styles.confirmText}>Confirmer</Text>
+          <Text style={styles.confirmText}>{t("common.confirm")}</Text>
         </TouchableOpacity>
       </View>
     </Modalize>
@@ -154,6 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: Spacing.md,
     marginBottom: Spacing.sm,
+    direction: "ltr",
   },
   stepBtn: {
     width: scale(40),
@@ -175,13 +180,13 @@ const styles = StyleSheet.create({
     color: "#1F2937",
   },
   maxBtn: {
-    alignSelf: "flex-end",
+    alignSelf: "center",
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.md,
-    borderWidth: 1,
+    // borderWidth: 1,
     borderColor: BLUE,
     borderRadius: Radius.sm,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xxxl,
   },
   maxText: { fontSize: fs(13), color: BLUE, fontWeight: "600" },
   confirmBtn: {

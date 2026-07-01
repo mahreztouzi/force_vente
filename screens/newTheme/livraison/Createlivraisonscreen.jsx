@@ -541,6 +541,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),
@@ -570,6 +571,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
+    direction: "ltr",
   },
   clientBlock: {
     flex: 1, // prend l'espace restant — le nom client est de longueur variable

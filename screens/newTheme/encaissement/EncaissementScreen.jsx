@@ -49,7 +49,8 @@ const EncaissementScreen = ({ route }) => {
   const userData = useSelector((state) => state.auth.user);
   const user = userData.code;
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
 
   const actionModalizeRef = useRef(null);
   const formModalizeRef = useRef(null);
@@ -375,7 +376,10 @@ const EncaissementScreen = ({ route }) => {
       )}
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[
+          styles.fab,
+          isAr ? { left: Spacing.lg } : { right: Spacing.lg },
+        ]}
         onPress={openCreateForm}
         activeOpacity={0.85}
       >
@@ -467,6 +471,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),
@@ -491,6 +496,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: scale(100),
+    direction: "ltr",
   },
 
   centerWrap: {
@@ -518,7 +524,7 @@ const styles = StyleSheet.create({
 
   fab: {
     position: "absolute",
-    right: Spacing.lg,
+
     bottom: Spacing.xl,
     width: scale(56),
     height: scale(56),

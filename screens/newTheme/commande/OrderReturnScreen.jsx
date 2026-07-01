@@ -18,7 +18,7 @@ import {
   MaterialIcons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 import { getArticles } from "../../../redux/slices/articleSlice";
 import {
@@ -80,6 +80,18 @@ const OrderReturnScreen = ({ route }) => {
   const quantityModalizeRef = useRef(null);
   const printModalizeRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const [articlesModalKey, setArticlesModalKey] = useState(0);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      setArticlesModalKey((prev) => prev + 1);
+    }
+  }, [isFocused]);
+  const handleArticlesModalClose = () => {
+    setArticlesModalKey((prev) => prev + 1);
+  };
 
   // ── Back handler ───────────────────────────
   useEffect(() => {
@@ -489,12 +501,14 @@ const OrderReturnScreen = ({ route }) => {
 
       {/* Modalize */}
       <ArticlesModalize
+        key={articlesModalKey}
         reference={articlesModalizeRef}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         filteredArticles={filteredArticles}
         handleArticleSelect={handleArticleSelect}
         scrollY={scrollY}
+        onClosed={handleArticlesModalClose}
       />
       <QuantityModalize
         reference={quantityModalizeRef}

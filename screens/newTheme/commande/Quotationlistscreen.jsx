@@ -22,7 +22,11 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useIsFocused,
+  useNavigation,
+} from "@react-navigation/native";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
@@ -155,6 +159,34 @@ const QuotationListScreen = ({ route }) => {
     initial: "#3B82F6",
     encours: "#10B981",
     termine: "#8B5CF6",
+  };
+
+  const [articlesModalKey, setArticlesModalKey] = useState(0);
+  const [articlesDetailsModalKey, setarticlesDetailsModalKey] = useState(1000);
+  const [actionModalKey, setActionModalKey] = useState(2000);
+  const [quantityModalKey, setQuantityModalKey] = useState(3000);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      setArticlesModalKey((prev) => prev + 1);
+      setarticlesDetailsModalKey((prev) => prev + 1);
+      setActionModalKey((prev) => prev + 1);
+      setQuantityModalKey((prev) => prev + 1);
+    }
+  }, [isFocused]);
+  const handleArticlesModalClose = () => {
+    setArticlesModalKey((prev) => prev + 1);
+  };
+  const handleArticlesDetailsModalClose = () => {
+    setarticlesDetailsModalKey((prev) => prev + 1);
+  };
+  const handleActionModalClose = () => {
+    setActionModalKey((prev) => prev + 1);
+  };
+
+  const handleQuantityModalClose = () => {
+    setQuantityModalKey((prev) => prev + 1);
   };
 
   // ── Back handler ─────────────────────────────
@@ -542,23 +574,28 @@ const QuotationListScreen = ({ route }) => {
 
       {/* Modalizes */}
       <QuotationDetailModalize
+        key={articlesDetailsModalKey}
         reference={detailModalRef}
         quotation={selectedQuotation}
         postes={postesQuotation}
         isServerReachable={isServerReachable}
         onArticlePress={handleArticlePress}
         onAddItem={handleAddItem}
+        onClosed={handleArticlesDetailsModalClose}
       />
 
       <QuotationActionModalize
+        key={actionModalKey}
         reference={actionModalRef}
         article={selectedArticle}
         deleteLoading={deleteLoading}
         onEdit={() => selectedArticle && handleEdit(selectedArticle)}
         onDelete={() => selectedArticle && handleDelete(selectedArticle)}
+        onClosed={handleActionModalClose}
       />
 
       <QuotationQuantityModalize
+        key={quantityModalKey}
         reference={quantityModalRef}
         statusOperation={statusOperation}
         selectedArticle={selectedArticle}
@@ -569,15 +606,18 @@ const QuotationListScreen = ({ route }) => {
         loading={deleteLoading}
         onConfirm={handleUpdateOrAdd}
         onChooseOther={handleChooseOther}
+        key={quantityModalKey}
       />
 
       <ArticlesModalize
+        key={articlesModalKey}
         reference={articlesModalRef}
         searchQuery={articlesSearchQuery}
         setSearchQuery={setArticlesSearchQuery}
         filteredArticles={filteredArticles}
         handleArticleSelect={handleArticleSelect}
         scrollY={scrollY}
+        onClosed={handleArticlesModalClose}
       />
     </View>
   );
@@ -596,6 +636,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),
@@ -648,6 +689,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: scale(90),
+    direction: "ltr",
   },
 
   fab: {

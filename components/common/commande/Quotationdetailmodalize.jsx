@@ -11,6 +11,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const BLUE = "#03A9F4";
 const TEAL = "#006475";
@@ -36,7 +37,9 @@ const QuotationDetailModalize = ({
   isServerReachable,
   onArticlePress,
   onAddItem,
+  onClosed,
 }) => {
+  const { t } = useTranslation();
   if (!quotation) return null;
 
   const canEdit = isServerReachable && quotation.status === "initial";
@@ -57,6 +60,7 @@ const QuotationDetailModalize = ({
       velocityThreshold={0.8}
       keyboardAvoidingBehavior="padding"
       avoidKeyboardLikeIOS
+      onClosed={onClosed}
     >
       <View style={styles.content}>
         {/* Top */}
@@ -64,7 +68,9 @@ const QuotationDetailModalize = ({
           <View style={{ flex: 1 }}>
             <Text style={styles.clientName}>{quotation.clientName}</Text>
             <View style={styles.subRow}>
-              <Text style={styles.meta}>{postes.length} article(s)</Text>
+              <Text style={styles.meta}>
+                {postes.length} {t("cart.articles")}
+              </Text>
               <Text style={styles.meta}>{quotation.erdat}</Text>
             </View>
           </View>
@@ -80,12 +86,18 @@ const QuotationDetailModalize = ({
         <View style={styles.tableWrap}>
           {/* En-têtes */}
           <View style={styles.tableHeader}>
-            <Text style={[styles.thText, { flex: 4 }]}>Code / Désignation</Text>
-            <Text style={[styles.thText, styles.right, { flex: 2 }]}>Qté</Text>
-            <Text style={[styles.thText, styles.right, { flex: 2 }]}>
-              Qté App.
+            <Text style={[styles.thText, { flex: 4 }]}>
+              {t("order.codeDesignation")}
             </Text>
-            <Text style={[styles.thText, styles.right, { flex: 2 }]}>Prix</Text>
+            <Text style={[styles.thText, styles.right, { flex: 2 }]}>
+              {t("order.qty")}
+            </Text>
+            <Text style={[styles.thText, styles.right, { flex: 2 }]}>
+              {t("order.qtyAccepted")}
+            </Text>
+            <Text style={[styles.thText, styles.right, { flex: 2 }]}>
+              {t("order.price")}
+            </Text>
           </View>
 
           <ScrollView style={styles.tableScroll} nestedScrollEnabled>
@@ -129,7 +141,7 @@ const QuotationDetailModalize = ({
         {canEdit && (
           <TouchableOpacity style={styles.addBtn} onPress={onAddItem}>
             <MaterialIcons name="add" size={scale(18)} color={TEAL} />
-            <Text style={styles.addBtnText}>Ajouter un article</Text>
+            <Text style={styles.addBtnText}>{t("order.addArticle")}</Text>
           </TouchableOpacity>
         )}
 
@@ -141,7 +153,7 @@ const QuotationDetailModalize = ({
               color="#FF9800"
             />
             <Text style={styles.infoText}>
-              Cette offre ne peut plus être modifiée ({quotation.statutGlobal})
+              {t("order.notEditable", { status: quotation.statutGlobal })}
             </Text>
           </View>
         )}

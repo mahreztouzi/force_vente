@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Linking,
   ScrollView,
   BackHandler,
+  Dimensions,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,6 +29,8 @@ import PagerView from "react-native-pager-view";
 import ClientMap from "../../components/ClientMap";
 import BottomFade from "../../components/common/Bottomfade";
 import PriceDisplay from "../../components/common/Pricedisplay";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIsFocused } from "@react-navigation/native";
 
 const BLUE = "#03A9F4";
 const TEXT_DARK = "#212121";
@@ -49,6 +52,8 @@ const splitAmount = (value) => {
 
 const ClientDetailsScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
+  const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const { client } = route.params;
   const dispatch = useDispatch();
   const { favorites } = useSelector((state) => state.clients);
@@ -58,6 +63,17 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   const isFavorite = favorites.includes(client.kunnr);
 
+  const [modalKey, setModalKey] = useState(0);
+  useEffect(() => {
+    if (isFocused) {
+      // force un nouveau montage à chaque retour sur l'écran
+      setModalKey((prev) => prev + 1);
+    }
+  }, [isFocused]);
+
+  const handleModalClose = () => {
+    setModalKey((prev) => prev + 1);
+  };
   useEffect(() => {
     const handleBackPress = () => {
       if (motifModalizeRef.current?.isOpen) {
@@ -97,7 +113,9 @@ const ClientDetailsScreen = ({ route, navigation }) => {
 
   const handleMotifSelect = (motif) => {
     motifModalizeRef.current?.close();
-    navigation.navigate("create_cmd", { client, motif });
+    setTimeout(() => {
+      navigation.navigate("create_cmd", { client, motif });
+    }, 300);
   };
 
   // ── 7 vignettes, à plat — plus de sous-modalize intermédiaire pour Offre/Retour ──
@@ -163,7 +181,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
   const montantSplit = splitAmount(client.solde);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <View style={[styles.safeArea, { paddingTop: insets.top }]}>
       <ScreenBackground />
       <StatusBar barStyle="dark-content" />
       <PagerView style={styles.pager} initialPage={0}>
@@ -328,7 +346,7 @@ const ClientDetailsScreen = ({ route, navigation }) => {
       {/* <BottomFade height={10} /> */}
 
       {/* Modalize motifs de retour — ouverte directement par la vignette */}
-      <Modalize
+      {/* <Modalize
         ref={motifModalizeRef}
         adjustToContentHeight
         modalStyle={styles.modalContainer}
@@ -373,8 +391,54 @@ const ClientDetailsScreen = ({ route, navigation }) => {
             ))}
           </ScrollView>
         </View>
-      </Modalize>
-    </SafeAreaView>
+      </Modalize> */}
+      <Modalize
+        key={modalKey}
+        ref={motifModalizeRef}
+        modalHeight={Dimensions.get("window").height * 0.6}
+        panGestureEnabled={false}
+        modalStyle={styles.modalContainer}
+        handlePosition="inside"
+        withHandle={true}
+        closeOnOverlayTap={true}
+        panGestureComponentEnabled={true}
+        closeSnapPointStraightEnabled={false}
+        dragToss={0.05}
+        keyboardAvoidingBehavior="padding"
+        avoidKeyboardLikeIOS={true}
+        onClosed={handleModalClose}
+        HeaderComponent={
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>
+              {t("client.selectReturnReason")}
+            </Text>
+            <TouchableOpacity onPress={() => motifModalizeRef.current?.close()}>
+              <MaterialIcons name="close" size={22} color={TEXT_MUTED} />
+            </TouchableOpacity>
+          </View>
+        }
+        flatListProps={{
+          data: motifs,
+          keyExtractor: (item) => item.Augru,
+          contentContainerStyle: styles.motifListContent,
+          showsVerticalScrollIndicator: true,
+          bounces: false,
+          nestedScrollEnabled: true,
+          renderItem: ({ item }) => (
+            <TouchableOpacity
+              style={styles.motifItem}
+              onPress={() => handleMotifSelect(item)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.motifText}>{item.Bezei}</Text>
+              <Text style={styles.motifCode}>
+                {`${t("client.code")}: ${item.Augru}`}
+              </Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+    </View>
   );
 };
 

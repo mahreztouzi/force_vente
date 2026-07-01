@@ -45,7 +45,8 @@ const BORDER = "#E5E7EB";
 
 const LivraisonScreen = ({ route }) => {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === "ar";
   const { client } = route.params;
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.auth.user);
@@ -421,6 +422,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
+    direction: "ltr",
   },
   backBtn: {
     width: scale(36),
@@ -464,6 +466,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.sm,
     paddingBottom: scale(90),
+    direction: "ltr",
   },
 
   centerWrap: {

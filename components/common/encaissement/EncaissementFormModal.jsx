@@ -12,6 +12,7 @@ import DateField from "react-native-datefield";
 import { getPaymentIcon } from "./EncaissementCard";
 import { scale, fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const TEAL = "#006475";
 const TEXT_DARK = "#212121";
@@ -38,6 +39,12 @@ const EncaissementFormModal = ({
   onSubmit,
   onCancel,
 }) => {
+  const { t } = useTranslation();
+
+  const MODE_LABELS = {
+    ESPECE: t("encaissement.modeEspece"),
+    CHEQUE: t("encaissement.modeCheque"),
+  };
   const formatMontantInput = (value) => {
     const numericValue = value.replace(/[^0-9.]/g, "");
     const parts = numericValue.split(".");
@@ -65,17 +72,17 @@ const EncaissementFormModal = ({
       <View style={styles.container}>
         <Text style={styles.title}>
           {formMode === "create"
-            ? "Nouvel encaissement"
-            : "Modifier l'encaissement"}
+            ? t("encaissement.createTitle")
+            : t("encaissement.editTitle")}
         </Text>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Date d'encaissement</Text>
+          <Text style={styles.label}>{t("encaissement.dateLabel")}</Text>
           <DateField
             styleInput={styles.dateInput}
-            labelDate="Jour"
-            labelMonth="Mois"
-            labelYear="Année"
+            labelDate={t("encaissement.day")}
+            labelMonth={t("encaissement.month")}
+            labelYear={t("encaissement.year")}
             defaultValue={dateValue}
             containerStyle={{ width: "100%" }}
             onSubmit={onDateChange}
@@ -86,7 +93,7 @@ const EncaissementFormModal = ({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Montant (DZD)</Text>
+          <Text style={styles.label}>{t("encaissement.amountLabel")}</Text>
           <TextInput
             style={styles.input}
             value={displayMontant}
@@ -101,7 +108,7 @@ const EncaissementFormModal = ({
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>Mode de paiement</Text>
+          <Text style={styles.label}>{t("encaissement.paymentMode")}</Text>
           <View style={styles.modesRow}>
             {MODES_PAIEMENT.map((mode) => {
               const selected = form.ModePaiement === mode;
@@ -118,7 +125,7 @@ const EncaissementFormModal = ({
                       selected && styles.modeTextSelected,
                     ]}
                   >
-                    {mode}
+                    {MODE_LABELS[mode] || mode}
                   </Text>
                 </TouchableOpacity>
               );
@@ -128,19 +135,19 @@ const EncaissementFormModal = ({
 
         {form.ModePaiement === "CHEQUE" && (
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Référence (optionnelle)</Text>
+            <Text style={styles.label}>{t("encaissement.referenceLabel")}</Text>
             <TextInput
               style={styles.input}
               value={form.Reference}
               onChangeText={(text) => setForm({ ...form, Reference: text })}
-              placeholder="N° chèque"
+              placeholder={t("encaissement.referencePlaceholder")}
             />
           </View>
         )}
 
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-            <Text style={styles.cancelText}>Annuler</Text>
+            <Text style={styles.cancelText}>{t("common.cancel")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -152,7 +159,9 @@ const EncaissementFormModal = ({
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <Text style={styles.submitText}>
-                {formMode === "create" ? "Créer" : "Modifier"}
+                {formMode === "create"
+                  ? t("encaissement.create")
+                  : t("encaissement.edit")}
               </Text>
             )}
           </TouchableOpacity>

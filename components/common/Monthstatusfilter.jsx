@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { scale, fs } from "../../utils/responsive";
 import { Spacing, Radius } from "../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const BLUE = "#03A9F4";
 const TEXT_DARK = "#1F2937";
@@ -67,6 +68,8 @@ const MonthStatusFilter = ({
   searchPlaceholder = "Rechercher...",
   showSearch = true,
 }) => {
+  const { t } = useTranslation();
+  const MONTHS = t("common.months", { returnObjects: true });
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, right: 0 });
   const yearBtnRef = useRef(null);
@@ -121,7 +124,7 @@ const MonthStatusFilter = ({
       {showMonthFilter && (
         <View style={styles.monthBlock}>
           <View style={styles.monthHeader}>
-            <Text style={styles.monthTitle}>Période</Text>
+            <Text style={styles.monthTitle}>{t("common.period")}</Text>
             <TouchableOpacity
               ref={yearBtnRef}
               style={styles.yearBtn}
@@ -172,7 +175,7 @@ const MonthStatusFilter = ({
           <MaterialIcons name="search" size={scale(18)} color={TEXT_MUTED} />
           <TextInput
             style={styles.searchInput}
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder || t("common.search")}
             placeholderTextColor={TEXT_MUTED}
             value={searchQuery}
             onChangeText={onSearchChange}

@@ -10,6 +10,7 @@ import {
 import { Modalize } from "react-native-modalize";
 import { fs } from "../../../utils/responsive";
 import { Spacing, Radius } from "../../../constants/Theme";
+import { useTranslation } from "react-i18next";
 
 const TEAL = "#006475";
 const TEXT_DARK = "#212121";
@@ -21,43 +22,51 @@ const CancelationModal = ({
   isCancelling,
   onConfirm,
   onCancel,
-}) => (
-  <Modalize ref={reference} adjustToContentHeight closeOnOverlayTap withHandle>
-    <View style={styles.container}>
-      <Text style={styles.title}>Raison d'annulation</Text>
+}) => {
+  const { t } = useTranslation();
+  return (
+    <Modalize
+      ref={reference}
+      adjustToContentHeight
+      closeOnOverlayTap
+      withHandle
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>{t("encaissement.cancelReasonTitle")}</Text>
 
-      <TextInput
-        style={styles.textarea}
-        placeholder="Saisissez la raison de l'annulation..."
-        placeholderTextColor="#999"
-        multiline
-        numberOfLines={5}
-        maxLength={200}
-        textAlignVertical="top"
-        onChangeText={onChangeReason}
-        value={reason}
-      />
+        <TextInput
+          style={styles.textarea}
+          placeholder={t("encaissement.cancelReasonPlaceholder")}
+          placeholderTextColor="#999"
+          multiline
+          numberOfLines={5}
+          maxLength={200}
+          textAlignVertical="top"
+          onChangeText={onChangeReason}
+          value={reason}
+        />
 
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-          <Text style={styles.cancelText}>Annuler</Text>
-        </TouchableOpacity>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
+            <Text style={styles.cancelText}>{t("common.cancel")}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.submitBtn}
-          onPress={onConfirm}
-          disabled={isCancelling || !reason?.trim()}
-        >
-          {isCancelling ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.submitText}>Confirmer</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.submitBtn}
+            onPress={onConfirm}
+            disabled={isCancelling || !reason?.trim()}
+          >
+            {isCancelling ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.submitText}>{t("common.confirm")}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-  </Modalize>
-);
+    </Modalize>
+  );
+};
 
 export default CancelationModal;
 
